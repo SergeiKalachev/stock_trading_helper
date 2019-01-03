@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Button, ButtonType } from 'office-ui-fabric-react';
-import Header from './Header';
-import HeroList, { HeroListItem } from './HeroList';
+import { Header } from './Header';
+import { Content } from './Content';
 import Progress from './Progress';
 
 import * as OfficeHelpers from '@microsoft/office-js-helpers';
@@ -12,52 +11,21 @@ export interface AppProps {
 }
 
 export interface AppState {
-    listItems: HeroListItem[];
 }
 
 export default class App extends React.Component<AppProps, AppState> {
     constructor(props, context) {
         super(props, context);
-        this.state = {
-            listItems: []
-        };
     }
 
-    componentDidMount() {
-        this.setState({
-            listItems: [
-                {
-                    icon: 'Ribbon',
-                    primaryText: 'Achieve more with Office integration'
-                },
-                {
-                    icon: 'Unlock',
-                    primaryText: 'Unlock features and functionality'
-                },
-                {
-                    icon: 'Design',
-                    primaryText: 'Create and visualize like a pro'
-                }
-            ]
-        });
-    }
-
-    click = async () => {
+    setColor = async () => {
         try {
             await Excel.run(async context => {
-                /**
-                 * Insert your Excel code here
-                 */
                 const range = context.workbook.getSelectedRange();
-
-            // Read the range address
-            range.load('address');
-
-            // Update the fill color
-            range.format.fill.color = 'yellow';
-
-            await context.sync();
-            console.log(`The range address was ${range.address}.`);
+                range.load('address');
+                range.format.fill.color = 'green';
+                await context.sync();
+                console.log(`The range address was ${range.address}.`);
             });
         } catch (error) {
             OfficeHelpers.UI.notify(error);
@@ -83,11 +51,8 @@ export default class App extends React.Component<AppProps, AppState> {
 
         return (
             <div className='ms-welcome'>
-                <Header logo='assets/logo-filled.png' title={this.props.title} message='Welcome' />
-                <HeroList message='Discover what stock trading helper can do for you today!' items={this.state.listItems}>
-                    <p className='ms-font-l'>Modify the source files, then click <b>Run</b>.</p>
-                    <Button className='ms-welcome__action' buttonType={ButtonType.hero} iconProps={{ iconName: 'ChevronRight' }} onClick={this.click}>Run</Button>
-                </HeroList>
+                <Header title='Welcome' />
+                <Content message='Choose the button below to set the color of the selected range to green.' buttonLabel='Set color' click={this.setColor} />
             </div>
         );
     }

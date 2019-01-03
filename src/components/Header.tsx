@@ -2,23 +2,20 @@ import * as React from 'react';
 
 export interface HeaderProps {
     title: string;
-    logo: string;
-    message: string;
 }
 
-export default class Header extends React.Component<HeaderProps> {
-    render() {
-        const {
-            title,
-            logo,
-            message
-        } = this.props;
+export class Header extends React.Component<HeaderProps, any> {
+    constructor(props, context) {
+        super(props, context);
+    }
 
+    render() {
         return (
-            <section className='ms-welcome__header ms-bgColor-neutralLighter ms-u-fadeIn500'>
-                <img width='90' height='90' src={logo} alt={title} title={title} />
-                <h1 className='ms-fontSize-su ms-fontWeight-light ms-fontColor-neutralPrimary'>{message}</h1>
-            </section>
+            <div id='content-header'>
+                <div className='padding'>
+                    <h1>{this.props.title}</h1>
+                </div>
+            </div>
         );
     }
 }
