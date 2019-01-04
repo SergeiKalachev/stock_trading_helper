@@ -1,24 +1,13 @@
 import * as React from 'react';
-import { Header } from './Header';
-import { Content } from './Content';
-import Progress from './Progress';
-
-import * as OfficeHelpers from '@microsoft/office-js-helpers';
+// import * as OfficeHelpers from '@microsoft/office-js-helpers';
 
 export interface AppProps {
     title: string;
     isOfficeInitialized: boolean;
 }
 
-export interface AppState {
-}
-
-export default class App extends React.Component<AppProps, AppState> {
-    constructor(props, context) {
-        super(props, context);
-    }
-
-    setColor = async () => {
+export default class App extends React.Component<AppProps, any> {
+    /* setColor = async () => {
         try {
             await Excel.run(async context => {
                 const range = context.workbook.getSelectedRange();
@@ -31,28 +20,22 @@ export default class App extends React.Component<AppProps, AppState> {
             OfficeHelpers.UI.notify(error);
             OfficeHelpers.Utilities.log(error);
         }
-    }
+    } */
 
     render() {
-        const {
-            title,
-            isOfficeInitialized,
-        } = this.props;
+        const { isOfficeInitialized } = this.props;
 
         if (!isOfficeInitialized) {
             return (
-                <Progress
-                    title={title}
-                    logo='assets/logo-filled.png'
-                    message='Please sideload your addin to see app body.'
-                />
+                <div className='main'>
+                    Here should be spinner and message that add-in should be sideloaded
+                </div>
             );
         }
 
         return (
-            <div className='ms-welcome'>
-                <Header title='Welcome' />
-                <Content message='Choose the button below to set the color of the selected range to green.' buttonLabel='Set color' click={this.setColor} />
+            <div className='main'>
+                Here is my add-in functionality
             </div>
         );
     }

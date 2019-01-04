@@ -48,6 +48,10 @@ const rules = [
         use: ['style-loader', 'css-loader', 'less-loader']
     },
     {
+        test: /\.scss$/,
+        use: ['style-loader', 'css-loader', 'sass-loader']
+    },
+    {
         test: /\.(png|jpe?g|gif|svg|woff|woff2|ttf|eot|ico)$/,
         use: {
             loader: 'file-loader',

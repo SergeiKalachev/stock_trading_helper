@@ -5,7 +5,7 @@ import { initializeIcons } from 'office-ui-fabric-react/lib/Icons';
 
 import App from './components/App';
 
-import './styles.less';
+import './styles.scss';
 import 'office-ui-fabric-react/dist/css/fabric.min.css';
 
 initializeIcons();
