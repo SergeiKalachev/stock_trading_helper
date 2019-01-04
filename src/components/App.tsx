@@ -1,5 +1,9 @@
 import * as React from 'react';
+import { Route, Switch } from "react-router-dom";
+import SideloadingRequirement from '../pages/SideloadingRequirement';
 // import * as OfficeHelpers from '@microsoft/office-js-helpers';
+
+import Main from '../pages/Main';
 
 export interface AppProps {
     title: string;
@@ -23,20 +27,17 @@ export default class App extends React.Component<AppProps, any> {
     } */
 
     render() {
-        const { isOfficeInitialized } = this.props;
+        const { isOfficeInitialized, title } = this.props;
 
         if (!isOfficeInitialized) {
-            return (
-                <div className='main'>
-                    Here should be spinner and message that add-in should be sideloaded
-                </div>
-            );
+            return <SideloadingRequirement title={title} />
         }
 
         return (
-            <div className='main'>
-                Here is my add-in functionality
-            </div>
+            <Switch>
+                <Route exact path="/" component={Main} />
+                <Route exact path="/about" render={() => (<div>About page</div>)} />
+            </Switch>
         );
     }
 }
