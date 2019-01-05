@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Route, Switch } from "react-router-dom";
 import SideloadingRequirement from '../pages/SideloadingRequirement';
 // import * as OfficeHelpers from '@microsoft/office-js-helpers';
 
-import Main from '../pages/Main';
+import Routes from './Routes';
+import Footer from './Footer';
 
 export interface AppProps {
     title: string;
@@ -34,10 +34,10 @@ export default class App extends React.Component<AppProps, any> {
         }
 
         return (
-            <Switch>
-                <Route exact path="/" component={Main} />
-                <Route exact path="/about" render={() => (<div>About page</div>)} />
-            </Switch>
-        );
+            <div className="page">
+                <Routes className="page__body"/>
+                <Footer className="page__footer"/>
+            </div>
+        )
     }
 }
