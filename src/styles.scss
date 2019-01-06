@@ -129,6 +129,13 @@ h6 {
     }
 }
 
+/* OVERRIDES TO EXTERNAL STYLES */
+
 #container {
     height: 100%;
 }
+
+.office-js-helpers-notification {
+    background-color: rgba(255, 137, 137, 0.815);
+}
+
