@@ -1,3 +1,5 @@
+@import '../../constants';
+
 .footer {
     box-sizing: border-box;
     margin-top: .5rem;
@@ -14,7 +16,7 @@
         min-width: 5.5rem;
         font-family: Arial, Helvetica, sans-serif;
         font-size: 1.2rem;
-        color: rgb(0, 144, 170);
+        color: $brand-color-primary;
         font-weight: 500;
         cursor: pointer;
         transition: font-size 100ms linear, color 200ms linear;
@@ -25,7 +27,7 @@
 
         &:hover {
             font-size: 1.3rem;
-            color: rgb(255, 50, 50);
+            color: $brand-color-secondary;
         }
     }
 }
