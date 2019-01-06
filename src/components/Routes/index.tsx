@@ -1,18 +1,20 @@
 import * as React from 'react';
 import { Route, Switch, Redirect } from "react-router-dom";
-import cn from 'classnames';
 
 import Main from '../../pages/Main';
+import Instruction from '../../pages/Instruction';
+import Contacts from '../../pages/Contacts';
+import FooteredRoute from '../../components/FooteredRoute';
 
 import './styles.scss';
 
-const Footer: React.FunctionComponent<{ className?: String }> = ({ className }) => (
-    <div className={cn('body', className)}>
+export default () => (
+    <div className="page">
         <Switch>
-            <Route exact path="/" component={Main} />
+            <FooteredRoute exact path="/" component={Main} />
+            <Route exact path="/instruction" component={Instruction} />
+            <Route exact path="/contacts" component={Contacts} />
             <Redirect to="/" />
         </Switch>
     </div>
 )
-
-export default Footer;

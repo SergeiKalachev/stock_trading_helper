@@ -3,7 +3,6 @@ import SideloadingRequirement from '../pages/SideloadingRequirement';
 // import * as OfficeHelpers from '@microsoft/office-js-helpers';
 
 import Routes from './Routes';
-import Footer from './Footer';
 
 export interface AppProps {
     title: string;
@@ -33,11 +32,6 @@ export default class App extends React.Component<AppProps, any> {
             return <SideloadingRequirement title={title} />
         }
 
-        return (
-            <div className="page">
-                <Routes className="page__body"/>
-                <Footer className="page__footer"/>
-            </div>
-        )
+        return <Routes />
     }
 }

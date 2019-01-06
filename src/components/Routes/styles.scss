@@ -1,3 +1,15 @@
 .body {
     background-color: white;
 }
+
+.page {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.3rem;
+    background-color: rgb(201, 201, 201);
+
+    &__body {
+        flex: 1;
+    }
+}
