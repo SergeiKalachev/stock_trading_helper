@@ -12,7 +12,7 @@ export function getServerHost() {
 
 export async function wrapExcelLogic(logic) {
     try {
-        return Excel.run(logic);
+        return await Excel.run(logic);
     }
     catch (error) {
         OfficeHelpers.UI.notify(error);
