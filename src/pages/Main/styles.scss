@@ -33,6 +33,7 @@
         border-radius: 5px;
         box-shadow: 0 0 5px rgb(155, 155, 155);
         transition: color 150ms linear, box-shadow 100ms linear, font-size 100ms linear;
+        text-transform: capitalize;
 
         &:last-child {
             margin-bottom: 0;

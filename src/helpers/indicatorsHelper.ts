@@ -1,0 +1,5 @@
+// calculateSMA
+
+// calculateEMA
+
+// calculateROC

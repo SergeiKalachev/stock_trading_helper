@@ -65,19 +65,19 @@ export default class Main extends React.Component {
                         onClick={this.handleDrawChartClick}
                         className="main__action"
                     >
-                        Draw Candlestick Chart
+                        draw candlestick chart
                     </div>
                     <div
                         onClick={this.handleCountIndicatorsClick}
                         className="main__action"
                     >
-                        Count Indicators
+                        count indicators
                     </div>
                     <div
                         onClick={this.handleResetClick}
                         className="main__action"
                     >
-                        Reset worksheet
+                        reset worksheet
                     </div>
                 </div>
             </div>
