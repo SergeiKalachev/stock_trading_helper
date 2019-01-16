@@ -27,3 +27,11 @@ export function uuidv4() {
       return v.toString(16);
     });
 }
+
+export function getArrayWithMultipleItems(item, countToMultiply) {
+    let result = [];
+    for(let i = 0; i < countToMultiply; i++) {
+        result.push(item);
+    }
+    return result;
+}

@@ -1,3 +1,5 @@
+import { getArrayWithMultipleItems } from './utils';
+
 export function calculateSMA(prices, period) {
     const SMA = [];
     for(let i = 0; i < prices.length; i++) {
@@ -13,6 +15,25 @@ export function calculateSMA(prices, period) {
     return SMA;
 }
 
-// calculateEMA
+export function calculateEMA(prices, period) {
+    const initialEMAValue = _calculateInitialEMAValue(prices, period);
+    let EMA = getArrayWithMultipleItems(0, period - 1); // for period 5 returns [0, 0, 0, 0]
+    EMA.push(initialEMAValue);// for period 5 it's [0, 0, 0, 0, someInitialValue]
+
+    const weight = 2 / (period + 1);
+    for(let i = period; i < prices.length; i++) {
+        let EMAForPeriod = (prices[i] - EMA[i-1]) * weight + EMA[i-1];
+        EMA.push(EMAForPeriod);
+    }
+    return EMA;
+}
 
 // calculateROC
+
+function _calculateInitialEMAValue(prices, period) {
+    let sum = 0;
+    for(let i = 0; i < period; i++) {
+        sum = sum + prices[i];
+    }
+    return sum / period;
+}
