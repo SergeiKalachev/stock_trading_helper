@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { wrapExcelLogic } from '../../helpers/utils'
+import { wrapExcelLogic, mapColumnIntoArrayOfValues } from '../../helpers/utils';
+import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
 import './styles.scss';
 
@@ -28,15 +29,64 @@ export default class Main extends React.Component {
             await context.sync();
             
             const verticalAxis = candlestickChart.axes.valueAxis;
-            verticalAxis.maximum = Math.max(...this.mapColumnIntoArrayOfValues(highPricesColumn.values));
-            verticalAxis.minimum = Math.min(...this.mapColumnIntoArrayOfValues(lowPricesColumn.values));
+            verticalAxis.maximum = Math.max(...mapColumnIntoArrayOfValues(highPricesColumn.values));
+            verticalAxis.minimum = Math.min(...mapColumnIntoArrayOfValues(lowPricesColumn.values));
             await context.sync();
         });
     }
 
-    handleCountIndicatorsClick = () => {}
+    handleCountIndicatorsClick = async () => {
+        await this.clearIndicatorsRange();
+        await wrapExcelLogic(async (context) => {
+            const dataRange = context.workbook.getSelectedRange();
+            const worksheet = context.workbook.worksheets.getActiveWorksheet();
+            dataRange.load(['address', 'values', 'columnCount']);
+            worksheet.load('name');
+            await context.sync();
 
+            const dataRangeAddress = dataRange.address.replace(`${worksheet.name}!`, '');
+            const outputSMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'F');
+            const outputSMARange = worksheet.getRange(outputSMARangeAddress);
+
+            const outputEMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'G');
+            const outputEMARange = worksheet.getRange(outputEMARangeAddress);
+
+            const outputROCRangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'H');
+            const outputROCRange = worksheet.getRange(outputROCRangeAddress);
+
+            const prices = dataRange.values.map(item => item[0]);
+            outputSMARange.values = calculateSMA(prices, 5);
+            outputEMARange.values = calculateEMA(prices, 5);
+            outputROCRange.values = calculateROC(prices, 5);
+            await context.sync();
+        });
+    }
+    
     handleResetClick = async () => {
+        await this.clearIndicatorsRange();
+        await this.clearCharts();
+    }
+
+    async clearIndicatorsRange() {
+        await wrapExcelLogic(async (context) => {
+            const worksheet = context.workbook.worksheets.getActiveWorksheet();
+
+            this.clearIndicatorRange(worksheet, 'F', 'SMA');
+            this.clearIndicatorRange(worksheet, 'G', 'EMA');
+            this.clearIndicatorRange(worksheet, 'H', 'ROC');
+
+            await context.sync();
+        })
+    }
+
+    clearIndicatorRange(worksheet, column, title) {
+        const range = worksheet.getRange(`${column}:${column}`);
+        const titleCell = worksheet.getRange(`${column}1`);
+        range.clear(Excel.ClearApplyTo.contents);
+        titleCell.values = [[title]];
+    }
+
+    async clearCharts() {
         await wrapExcelLogic(async (context) => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
             worksheet.load('charts/items/name');
@@ -49,12 +99,6 @@ export default class Main extends React.Component {
             }
             await context.sync();
         });
-    }
-
-    mapColumnIntoArrayOfValues(column) {
-        // this is an array of arrays, where each array consists of only one element
-        // we remove 1st array because it is header
-        return column.slice(1).map(elem => elem[0]);
     }
 
     render() {

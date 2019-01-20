@@ -28,6 +28,12 @@ export function uuidv4() {
     });
 }
 
+export function mapColumnIntoArrayOfValues(column) {
+    // this is an array of arrays, where each array consists of only one element
+    // we remove 1st array because it is header
+    return column.slice(1).map(elem => elem[0]);
+}
+
 export function getArrayWithMultipleItems(item, countToMultiply) {
     let result = [];
     for(let i = 0; i < countToMultiply; i++) {
