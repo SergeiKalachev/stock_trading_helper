@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { getServerHost } from '../../helpers/utils';
 import { wrapExcelLogic, mapColumnIntoArrayOfValues } from '../../helpers/utils';
 import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
@@ -8,6 +9,19 @@ import './styles.scss';
 const CHART_NAME = 'candlestick';
 
 export default class Main extends React.Component {
+    createSheet = async () => {
+        await wrapExcelLogic(async (context) => {
+            const newWorksheet = context.workbook.worksheets.add();
+            const table = newWorksheet.tables.add('A1:H50', true);
+            table.getHeaderRowRange().values = [['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'SMA', 'EMA', 'ROC']];
+            newWorksheet.activate();
+            Office.context.ui.displayDialogAsync(`${getServerHost()}/#/table-insertion-tip`, {
+                height: 50,
+                width: 60,
+            });
+        })
+    }
+
     handleDrawChartClick = async () => {
         await wrapExcelLogic(async (context) => {
             const dataRange = context.workbook.getSelectedRange();
@@ -45,6 +59,7 @@ export default class Main extends React.Component {
             await context.sync();
 
             const dataRangeAddress = dataRange.address.replace(`${worksheet.name}!`, '');
+
             const outputSMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'F');
             const outputSMARange = worksheet.getRange(outputSMARangeAddress);
 
@@ -105,6 +120,12 @@ export default class Main extends React.Component {
         return (
             <div className="main">
                 <div className="main__actions">
+                    <div
+                        onClick={this.createSheet}
+                        className="main__action"
+                    >
+                        create new sheet
+                    </div>
                     <div
                         onClick={this.handleDrawChartClick}
                         className="main__action"
