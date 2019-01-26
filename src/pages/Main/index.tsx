@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { toast } from 'react-toastify';
 
 import { getServerHost } from '../../helpers/utils';
 import { wrapExcelLogic, mapColumnIntoArrayOfValues } from '../../helpers/utils';
@@ -9,6 +10,54 @@ import './styles.scss';
 const CHART_NAME = 'candlestick';
 
 export default class Main extends React.Component {
+    selectionChangedEvent = null;
+    sheetActivatedEvent = null;
+
+    async componentDidMount() {
+        await wrapExcelLogic(async (context) => {
+            const sheets = context.workbook.worksheets;
+            this.sheetActivatedEvent = sheets.onActivated.add(this.resubscribeSelectionEvent);
+
+            this.subscribeSelectionEvent(context);
+            await context.sync();
+        });
+    }
+
+    subscribeSelectionEvent = (context) => {
+        toast.info("Subscribed");
+        const worksheet = context.workbook.worksheets.getActiveWorksheet();
+        this.selectionChangedEvent = worksheet.onSelectionChanged.add(this.handleSelectionChange);
+    }
+
+    resubscribeSelectionEvent = async () => {
+        await Excel.run(this.selectionChangedEvent.context, async (context) => {
+            this.selectionChangedEvent.remove();
+            toast.info("Unsubscribed");
+            this.subscribeSelectionEvent(context);
+            await context.sync();
+        })
+    }
+
+    async componentWillUnmount() {
+        await this.unsubscribeEvent(this.selectionChangedEvent);
+        await this.unsubscribeEvent(this.sheetActivatedEvent);
+    }
+
+    async handleSelectionChange(event) {
+        await wrapExcelLogic(async (context) => {
+            await context.sync();
+            toast.info(`Selection changed: ${event.address}`);
+        })
+    }
+
+    async unsubscribeEvent(event) {
+        toast.info("Unsubscribed");
+        await Excel.run(event.context, async (context) => {
+            event.remove();
+            await context.sync();
+        })
+    }
+
     createSheet = async () => {
         await wrapExcelLogic(async (context) => {
             const newWorksheet = context.workbook.worksheets.add();
@@ -143,6 +192,15 @@ export default class Main extends React.Component {
                         className="main__action"
                     >
                         reset worksheet
+                    </div>
+                    <div
+                        onClick={async () => {
+                            await this.unsubscribeEvent(this.selectionChangedEvent);
+                            await this.unsubscribeEvent(this.sheetActivatedEvent);
+                        }}
+                        className="main__action"
+                    >
+                        unsubscribe
                     </div>
                 </div>
             </div>

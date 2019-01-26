@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import SideloadingRequirement from '../pages/SideloadingRequirement';
 
 import Routes from './Routes';
@@ -16,6 +18,14 @@ export default class App extends React.Component<AppProps, any> {
             return <SideloadingRequirement title={title} />
         }
 
-        return <Routes />
+        return (
+            <React.Fragment>
+                <Routes />
+                <ToastContainer
+                    position={toast.POSITION.TOP_CENTER}
+                    autoClose={false}
+                />
+            </React.Fragment>
+        );
     }
 }
