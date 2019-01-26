@@ -20,6 +20,23 @@ export async function wrapExcelLogic(logic) {
     }
 }
 
+export function stringify(obj) {
+    const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (_key, value) => {
+          if (typeof value === "object" && value !== null) {
+            if (seen.has(value)) {
+              return;
+            }
+            seen.add(value);
+          }
+          return value;
+        };
+    };
+
+    return JSON.stringify(obj, getCircularReplacer());
+}
+
 // from https://stackoverflow.com/a/2117523
 export function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

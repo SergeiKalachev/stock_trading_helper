@@ -23,7 +23,7 @@ export default class App extends React.Component<AppProps, any> {
                 <Routes />
                 <ToastContainer
                     position={toast.POSITION.TOP_CENTER}
-                    autoClose={false}
+                    autoClose={2000}
                 />
             </React.Fragment>
         );
