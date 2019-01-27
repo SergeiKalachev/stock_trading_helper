@@ -1,8 +1,8 @@
 import * as React from 'react';
+import Checkbox from '../../components/controls/Checkbox';
 // import { toast } from 'react-toastify';
 
-import { getServerHost } from '../../helpers/utils';
-import { wrapExcelLogic, mapColumnIntoArrayOfValues } from '../../helpers/utils';
+import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
 import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
 import './styles.scss';
@@ -178,27 +178,48 @@ export default class Main extends React.Component {
                 <div className="main__actions">
                     <div
                         onClick={this.createSheet}
-                        className="main__action"
+                        className="main__action main__action_clickable"
                     >
                         create new sheet
                     </div>
                     <div
-                        onClick={this.handleDrawChartClick}
-                        className="main__action"
-                    >
-                        draw candlestick chart
-                    </div>
-                    <div
-                        onClick={this.handleCountIndicatorsClick}
-                        className="main__action"
-                    >
-                        count indicators
-                    </div>
-                    <div
                         onClick={this.handleResetClick}
-                        className="main__action"
+                        className="main__action main__action_clickable"
                     >
                         reset worksheet
+                    </div>
+                    <div className="main__action main__action_primary">
+                        <div className="main__option">
+                            <Checkbox
+                                className="main__option-checkbox"
+                                checked={false}
+                                onChange={() => {}}
+                            />
+                            <div className="main__option-label">
+                                draw candlestick chart
+                            </div>
+                        </div>
+                        <div className="main__option">
+                            <Checkbox
+                                className="main__option-checkbox"
+                                checked={true}
+                                onChange={() => {}}
+                            />
+                            <div className="main__option-label">
+                                count indicators
+                            </div>
+                        </div>
+                        <div className="main__option">
+                            <Checkbox
+                                className="main__option-checkbox"
+                                checked={false}
+                                onChange={() => {}}
+                            />
+                            <div className="main__option-label">
+                                draw ROC indicator
+                            </div>
+                        </div>
+                        <button className="main__primary-action-btn">Apply</button>
                     </div>
                 </div>
             </div>

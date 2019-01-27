@@ -5,11 +5,12 @@
     height: 100%;
     display: flex;
     justify-content: center;
-    padding: 2rem 0;
+    padding: 1rem 0;
     font-size: 1.2rem;
 
     &__actions {
-        display: inline-block;
+        display: flex;
+        flex-direction: column;
         padding: 1rem .5rem;
         width: 65%;
         max-width: 25rem;
@@ -20,8 +21,8 @@
     }
 
     &__action {
-        padding: .5rem;
-        height: 2rem;
+        box-sizing: border-box;
+        padding: 1.2rem;
         background-color: white;
         margin-bottom: 1rem;
         display: flex;
@@ -29,20 +30,71 @@
         align-items: center;
         color: $brand-color-primary;
         font-weight: 500;
-        cursor: pointer;
         border-radius: 5px;
         box-shadow: 0 0 5px rgb(155, 155, 155);
-        transition: color 150ms linear, box-shadow 100ms linear, font-size 100ms linear;
         text-transform: capitalize;
 
         &:last-child {
             margin-bottom: 0;
         }
 
-        &:hover {
-            color: $brand-color-secondary;
-            box-shadow: 0 0 10px rgba(255, 50, 50, 0.561);
-            font-size: 1.25rem;
+        &_clickable {
+        cursor: pointer;
+        height: 2rem;
+        transition: color 150ms linear, box-shadow 100ms linear, font-size 100ms linear;
+
+            &:hover {
+                color: $brand-color-secondary;
+                box-shadow: 0 0 10px rgba(255, 50, 50, 0.561);
+                font-size: 1.25rem;
+            }
         }
+
+        &_primary {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            transition: box-shadow 100ms linear;
+            overflow: auto;
+
+            &:hover {
+                box-shadow: 0 0 10px rgba(255, 50, 50, 0.561);
+            }
+        }
+    }
+
+    &__primary-action-btn {
+        border: none;
+        border-radius: 2px; 
+        background-color: $brand-color-primary;
+        padding: .4rem;
+        color: white;
+        box-shadow: 0 0 5px rgb(155, 155, 155);
+        font-size: 1rem;
+        letter-spacing: .15rem;
+        font-weight: 600;
+        cursor: pointer;
+
+
+        &:hover {
+            background-color: rgba(0, 145, 170, 0.76);
+        }
+    }
+
+    &__option {
+        display: flex;
+        margin-bottom: 1.5rem;
+    }
+
+    &__option-label {
+
+    }
+
+    &__option-checkbox {
+        margin-right: 1rem;
+    }
+
+    &__option-checkbox-container {
+        margin-right: .5rem;
     }
 }
