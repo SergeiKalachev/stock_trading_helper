@@ -40,6 +40,11 @@ const rules = [
         exclude: /node_modules/
     },
     {
+        enforce: "pre",
+        test: /\.js$/,
+        loader: "source-map-loader"
+    },
+    {
         test: /\.css$/,
         use: ['style-loader', 'css-loader']
     },
@@ -94,11 +99,16 @@ module.exports = {
     context: path.resolve('./src'),
     entry,
     output,
+    devtool: 'source-map',
     resolve: {
         extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.css', '.html']
     },
     module: {
         rules,
+    },
+    externals: {
+        "react": "React",
+        "react-dom": "ReactDOM"
     },
     optimization: {
         splitChunks: {
