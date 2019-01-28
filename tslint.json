@@ -1,4 +1,5 @@
 {
+    "extends": ["tslint-react", "tslint-config-prettier"],
     "rules": {
         "no-reference": true,
         "only-arrow-functions": [
@@ -63,6 +64,14 @@
             "check-operator",
             "check-separator",
             "check-type"
-        ]
+        ],
+        "align": [true, "parameters", "statements", "arguments", "members", "elements"],
+        "arrow-return-shorthand": [true, "multiline"],
+        "interface-name": [true, "always-prefix"],
+        // tslint-react
+        "jsx-self-close": true,
+        "jsx-space-before-trailing-slash": "",
+        "jsx-wrap-multiline": true,
+        "jsx-curly-spacing": "always"
     }
 }
