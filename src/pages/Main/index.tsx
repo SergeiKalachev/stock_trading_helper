@@ -1,4 +1,5 @@
 import * as React from 'react';
+import cn from 'classnames';
 import Option from './Option';
 import { TABLE_HEADER, TABLE_HEADER_FOR_CANDLESTICK } from '../../helpers/constants';
 // import { toast } from 'react-toastify';
@@ -282,11 +283,14 @@ export default class Main extends React.Component<{}, IState> {
                             checked={drawROCChart}
                             enabled={drawROCChartEnabled}
                         />
-                        {this.checkAtLeastOneOptionSelected() && (
-                            <button className='main__primary-action-btn' onClick={() => {}}>
-                                Apply
-                            </button>
-                        )}
+                        <button
+                            className={cn('main__primary-action-btn', {
+                                'main__primary-action-btn_disabled': !this.checkAtLeastOneOptionSelected()
+                            })}
+                            onClick={() => {}}
+                        >
+                            Apply
+                        </button>
                     </div>
                 </div>
             </div>

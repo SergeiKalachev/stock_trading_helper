@@ -78,6 +78,15 @@
         &:hover {
             background-color: rgba(0, 145, 170, 0.76);
         }
+
+        &_disabled {
+            opacity: 0.5;
+            cursor: default;
+
+            &:hover {
+                background-color: $brand-color-primary;
+            }
+        }
     }
 
     &__option {
