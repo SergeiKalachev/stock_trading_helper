@@ -1,32 +1,49 @@
 import * as React from 'react';
-import Checkbox from '../../components/controls/Checkbox';
+import Option from './Option';
+import { TABLE_HEADER } from '../../helpers/constants';
 // import { toast } from 'react-toastify';
 
-import {
-    wrapExcelLogic,
-    mapColumnIntoArrayOfValues,
-    getServerHost
-} from '../../helpers/utils';
-import {
-    calculateSMA,
-    calculateEMA,
-    calculateROC
-} from '../../helpers/indicatorsHelper';
+import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
+import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
 import './styles.scss';
 
 const CHART_NAME = 'candlestick';
 
-export default class Main extends React.Component {
+interface IState {
+    selectedRange: any[][];
+
+    drawCandlestickChartAllowed: boolean;
+    countIndicatorsAllowed: boolean;
+    drawROCChartAllowed: boolean;
+
+    drawCandlestickChart: boolean;
+    countIndicators: boolean;
+    drawROCChart: boolean;
+}
+
+export default class Main extends React.Component<{}, IState> {
+    constructor(props) {
+        super(props);
+        this.state = {
+            selectedRange: null,
+
+            drawCandlestickChartAllowed: false,
+            countIndicatorsAllowed: false,
+            drawROCChartAllowed: false,
+
+            drawCandlestickChart: false,
+            countIndicators: false,
+            drawROCChart: false
+        };
+    }
     selectionChangedEvent = null;
     sheetActivatedEvent = null;
 
     async componentDidMount() {
         await wrapExcelLogic(async context => {
             const sheets = context.workbook.worksheets;
-            this.sheetActivatedEvent = sheets.onActivated.add(
-                this.resubscribeSelectionEvent
-            );
+            this.sheetActivatedEvent = sheets.onActivated.add(this.resubscribeSelectionEvent);
 
             await this.subscribeSelectionEvent();
             await context.sync();
@@ -63,12 +80,29 @@ export default class Main extends React.Component {
         await this.unsubscribeEvent(this.sheetActivatedEvent);
     }
 
-    async handleSelectionChange(event) {
+    handleSelectionChange = async () => {
         await wrapExcelLogic(async context => {
+            const dataRange = context.workbook.getSelectedRange();
+            dataRange.load('values, columnCount, rowCount');
             await context.sync();
-            console.log(event);
+            const tableHeaderRowValues = Object.values(TABLE_HEADER);
+            const firstRow = dataRange[0];
+
+            const rangeCandlestickChartHasRightDimensions =
+                dataRange.columnCount === 5 && dataRange.rowCount > 2;
+            const rangeandlestickChartHasRightColumns = tableHeaderRowValues.every(
+                value => firstRow.indexOf(value) > -1
+            );
+
+            this.setState({
+                selectedRange: dataRange.values,
+                drawCandlestickChartAllowed:
+                    rangeCandlestickChartHasRightDimensions && rangeandlestickChartHasRightColumns,
+                countIndicatorsAllowed: false,
+                drawROCChartAllowed: false
+            });
         });
-    }
+    };
 
     async unsubscribeEvent(event) {
         await Excel.run(event.context, async context => {
@@ -81,17 +115,12 @@ export default class Main extends React.Component {
         await wrapExcelLogic(async context => {
             const newWorksheet = context.workbook.worksheets.add();
             const table = newWorksheet.tables.add('A1:H50', true);
-            table.getHeaderRowRange().values = [
-                ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'SMA', 'EMA', 'ROC']
-            ];
+            table.getHeaderRowRange().values = [Object.values(TABLE_HEADER)];
             newWorksheet.activate();
-            Office.context.ui.displayDialogAsync(
-                `${getServerHost()}/#/table-insertion-tip`,
-                {
-                    height: 50,
-                    width: 60
-                }
-            );
+            Office.context.ui.displayDialogAsync(`${getServerHost()}/#/table-insertion-tip`, {
+                height: 50,
+                width: 60
+            });
         });
     };
 
@@ -106,10 +135,7 @@ export default class Main extends React.Component {
             lowPricesColumn.load('values');
 
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            const candlestickChart = worksheet.charts.add(
-                Excel.ChartType.stockOHLC,
-                dataRange
-            );
+            const candlestickChart = worksheet.charts.add(Excel.ChartType.stockOHLC, dataRange);
 
             candlestickChart.name = CHART_NAME;
             candlestickChart.title.text = 'Candlesticks';
@@ -119,12 +145,8 @@ export default class Main extends React.Component {
             await context.sync();
 
             const verticalAxis = candlestickChart.axes.valueAxis;
-            verticalAxis.maximum = Math.max(
-                ...mapColumnIntoArrayOfValues(highPricesColumn.values)
-            );
-            verticalAxis.minimum = Math.min(
-                ...mapColumnIntoArrayOfValues(lowPricesColumn.values)
-            );
+            verticalAxis.maximum = Math.max(...mapColumnIntoArrayOfValues(highPricesColumn.values));
+            verticalAxis.minimum = Math.min(...mapColumnIntoArrayOfValues(lowPricesColumn.values));
             await context.sync();
         });
     };
@@ -138,27 +160,15 @@ export default class Main extends React.Component {
             worksheet.load('name');
             await context.sync();
 
-            const dataRangeAddress = dataRange.address.replace(
-                `${worksheet.name}!`,
-                ''
-            );
+            const dataRangeAddress = dataRange.address.replace(`${worksheet.name}!`, '');
 
-            const outputSMARangeAddress = dataRangeAddress.replace(
-                /[a-zA-Z]/g,
-                'F'
-            );
+            const outputSMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'F');
             const outputSMARange = worksheet.getRange(outputSMARangeAddress);
 
-            const outputEMARangeAddress = dataRangeAddress.replace(
-                /[a-zA-Z]/g,
-                'G'
-            );
+            const outputEMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'G');
             const outputEMARange = worksheet.getRange(outputEMARangeAddress);
 
-            const outputROCRangeAddress = dataRangeAddress.replace(
-                /[a-zA-Z]/g,
-                'H'
-            );
+            const outputROCRangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'H');
             const outputROCRange = worksheet.getRange(outputROCRangeAddress);
 
             const prices = dataRange.values.map(item => item[0]);
@@ -178,9 +188,9 @@ export default class Main extends React.Component {
         await wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
 
-            this.clearIndicatorRange(worksheet, 'F', 'SMA');
-            this.clearIndicatorRange(worksheet, 'G', 'EMA');
-            this.clearIndicatorRange(worksheet, 'H', 'ROC');
+            this.clearIndicatorRange(worksheet, 'F', TABLE_HEADER.SMA);
+            this.clearIndicatorRange(worksheet, 'G', TABLE_HEADER.EMA);
+            this.clearIndicatorRange(worksheet, 'H', TABLE_HEADER.ROC);
 
             await context.sync();
         });
@@ -209,13 +219,15 @@ export default class Main extends React.Component {
     }
 
     render() {
+        const {
+            drawCandlestickChartAllowed,
+            countIndicatorsAllowed,
+            drawROCChartAllowed
+        } = this.state;
         return (
             <div className='main'>
                 <div className='main__actions'>
-                    <div
-                        onClick={this.createSheet}
-                        className='main__action main__action_clickable'
-                    >
+                    <div onClick={this.createSheet} className='main__action main__action_clickable'>
                         create new sheet
                     </div>
                     <div
@@ -225,40 +237,25 @@ export default class Main extends React.Component {
                         reset worksheet
                     </div>
                     <div className='main__action main__action_primary'>
-                        <div className='main__option'>
-                            <Checkbox
-                                className='main__option-checkbox'
-                                checked={false}
-                                onChange={() => {}}
-                            />
-                            <div className='main__option-label'>
-                                draw candlestick chart
-                            </div>
-                        </div>
-                        <div className='main__option'>
-                            <Checkbox
-                                className='main__option-checkbox'
-                                checked={true}
-                                onChange={() => {}}
-                            />
-                            <div className='main__option-label'>
-                                count indicators
-                            </div>
-                        </div>
-                        <div className='main__option'>
-                            <Checkbox
-                                className='main__option-checkbox'
-                                checked={false}
-                                onChange={() => {}}
-                            />
-                            <div className='main__option-label'>
-                                draw ROC indicator
-                            </div>
-                        </div>
-                        <button
-                            className='main__primary-action-btn'
-                            onClick={() => {}}
-                        >
+                        <Option
+                            onChange={() => {}}
+                            optionText='draw candlestick chart'
+                            checked={false}
+                            enabled={drawCandlestickChartAllowed}
+                        />
+                        <Option
+                            onChange={() => {}}
+                            optionText='count indicators'
+                            checked={false}
+                            enabled={countIndicatorsAllowed}
+                        />
+                        <Option
+                            onChange={() => {}}
+                            optionText='draw ROC chart'
+                            checked={true}
+                            enabled={drawROCChartAllowed}
+                        />
+                        <button className='main__primary-action-btn' onClick={() => {}}>
                             Apply
                         </button>
                     </div>

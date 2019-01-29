@@ -5,7 +5,7 @@ import './styles.scss';
 
 interface ICheckboxParams {
     checked?: boolean;
-    onChange?: (...args: any[]) => any;
+    onChange?: (event?: React.ChangeEvent<HTMLInputElement>) => any;
     className?: string;
     type?: string;
 }
