@@ -17,32 +17,21 @@ const build = (() => {
 })();
 
 const entry = {
-    vendor: [
-        'react',
-        'react-dom',
-        'core-js',
-        'office-ui-fabric-react'
-    ],
-    app: [
-        'react-hot-loader/patch',
-        './index.tsx',
-    ],
+    vendor: ['react', 'react-dom', 'core-js', 'office-ui-fabric-react'],
+    app: ['react-hot-loader/patch', './index.tsx'],
     'function-file': '../function-file/function-file.ts'
 };
 
 const rules = [
     {
         test: /\.tsx?$/,
-        use: [
-            'react-hot-loader/webpack',
-            'ts-loader'
-        ],
+        use: ['react-hot-loader/webpack', 'ts-loader'],
         exclude: /node_modules/
     },
     {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.js$/,
-        loader: "source-map-loader"
+        loader: 'source-map-loader'
     },
     {
         test: /\.css$/,
@@ -77,7 +66,11 @@ const output = {
 const WEBPACK_PLUGINS = [
     new webpack.NamedModulesPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-    new webpack.BannerPlugin({ banner: `${build.name} v.${build.version} (${build.timestamp}) © ${build.author}` }),
+    new webpack.BannerPlugin({
+        banner: `${build.name} v.${build.version} (${build.timestamp}) © ${
+            build.author
+        }`
+    }),
     new webpack.DefinePlugin({
         ENVIRONMENT: JSON.stringify({
             build: build
@@ -86,7 +79,7 @@ const WEBPACK_PLUGINS = [
     new webpack.LoaderOptionsPlugin({
         options: {
             postcss: [
-                autoprefixer({ browsers: ['Safari >= 8', 'last 2 versions'] }),
+                autoprefixer({ browsers: ['Safari >= 8', 'last 2 versions'] })
             ],
             htmlLoader: {
                 minimize: true
@@ -104,19 +97,15 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.css', '.html']
     },
     module: {
-        rules,
-    },
-    externals: {
-        "react": "React",
-        "react-dom": "ReactDOM"
+        rules
     },
     optimization: {
         splitChunks: {
-          chunks: 'async',
-          minChunks: Infinity,
-          name: 'vendor'
+            chunks: 'async',
+            minChunks: Infinity,
+            name: 'vendor'
         }
-      },
+    },
     plugins: [
         ...WEBPACK_PLUGINS,
         new ExtractTextPlugin('[name].[hash].css'),
@@ -136,7 +125,7 @@ module.exports = {
             {
                 from: '../assets',
                 ignore: ['*.scss'],
-                to: 'assets',
+                to: 'assets'
             }
         ])
     ]

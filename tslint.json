@@ -2,60 +2,30 @@
     "extends": ["tslint-react", "tslint-config-prettier"],
     "rules": {
         "no-reference": true,
-        "only-arrow-functions": [
-            true,
-            "allow-declarations"
-        ],
-        "no-namespace": [
-            true,
-            "allow-declarations"
-        ],
+        "only-arrow-functions": [true, "allow-declarations"],
+        "no-namespace": [true, "allow-declarations"],
         "class-name": true,
         "curly": true,
         "eofline": true,
         "forin": true,
-        "indent": [
-            true,
-            "spaces"
-        ],
+        "indent": [true, "spaces"],
         "label-position": true,
         "no-arg": true,
         "no-var-keyword": true,
-        "no-console": [
-            true,
-            "debug",
-            "info",
-            "time",
-            "timeEnd",
-            "trace"
-        ],
+        "no-console": [true, "debug", "info", "time", "timeEnd", "trace"],
         "no-construct": true,
-        "no-debugger": true,
+        "no-debugger": false,
         "no-duplicate-variable": true,
         "no-empty": false,
         "no-eval": true,
         "no-trailing-whitespace": true,
         "no-unused-expression": true,
         "no-use-before-declare": true,
-        "one-line": [
-            true,
-            "check-open-brace",
-            "check-whitespace"
-        ],
-        "quotemark": [
-            true,
-            "single"
-        ],
+        "one-line": [true, "check-open-brace", "check-whitespace"],
+        "quotemark": [true, "single"],
         "radix": true,
-        "semicolon": [
-            true,
-            "always",
-            "ignore-interfaces"
-        ],
-        "triple-equals": [
-            true,
-            "allow-null-check"
-        ],
+        "semicolon": [true, "always", "ignore-bound-class-methods"],
+        "triple-equals": [true, "allow-null-check"],
         "variable-name": false,
         "whitespace": [
             true,
@@ -65,13 +35,21 @@
             "check-separator",
             "check-type"
         ],
-        "align": [true, "parameters", "statements", "arguments", "members", "elements"],
+        "align": [
+            true,
+            "parameters",
+            "statements",
+            "arguments",
+            "members",
+            "elements"
+        ],
         "arrow-return-shorthand": [true, "multiline"],
         "interface-name": [true, "always-prefix"],
         // tslint-react
         "jsx-self-close": true,
         "jsx-space-before-trailing-slash": "",
         "jsx-wrap-multiline": true,
-        "jsx-curly-spacing": "always"
+        "jsx-curly-spacing": "always",
+        "jsx-no-lambda": false
     }
 }
