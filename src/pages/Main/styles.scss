@@ -11,7 +11,7 @@
     &__actions {
         display: flex;
         flex-direction: column;
-        padding: 1rem .5rem;
+        padding: 1rem 0.5rem;
         width: 65%;
         max-width: 25rem;
         min-width: 17rem;
@@ -39,9 +39,9 @@
         }
 
         &_clickable {
-        cursor: pointer;
-        height: 2rem;
-        transition: color 150ms linear, box-shadow 100ms linear, font-size 100ms linear;
+            cursor: pointer;
+            height: 2rem;
+            transition: color 150ms linear, box-shadow 100ms linear, font-size 100ms linear;
 
             &:hover {
                 color: $brand-color-secondary;
@@ -65,16 +65,15 @@
 
     &__primary-action-btn {
         border: none;
-        border-radius: 2px; 
+        border-radius: 2px;
         background-color: $brand-color-primary;
-        padding: .4rem;
+        padding: 0.4rem;
         color: white;
         box-shadow: 0 0 5px rgb(155, 155, 155);
         font-size: 1rem;
-        letter-spacing: .15rem;
+        letter-spacing: 0.15rem;
         font-weight: 600;
         cursor: pointer;
-
 
         &:hover {
             background-color: rgba(0, 145, 170, 0.76);
@@ -86,15 +85,27 @@
         margin-bottom: 1.5rem;
     }
 
-    &__option-label {
-
-    }
-
     &__option-checkbox {
         margin-right: 1rem;
+        cursor: default;
+        opacity: 0.5;
+
+        &_enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+    }
+
+    &__option-label {
+        opacity: 0.5;
+
+        &_enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
     }
 
     &__option-checkbox-container {
-        margin-right: .5rem;
+        margin-right: 0.5rem;
     }
 }

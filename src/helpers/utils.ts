@@ -10,7 +10,7 @@ export function getServerHost() {
     return host;
 }
 
-export async function wrapExcelLogic(logic) {
+export async function wrapExcelLogic(logic: (context: Excel.RequestContext) => any) {
     try {
         return await Excel.run(logic);
     } catch (error) {

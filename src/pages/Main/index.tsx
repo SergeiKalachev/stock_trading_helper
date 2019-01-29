@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Option from './Option';
-import { TABLE_HEADER } from '../../helpers/constants';
+import { TABLE_HEADER, TABLE_HEADER_FOR_CANDLESTICK } from '../../helpers/constants';
 // import { toast } from 'react-toastify';
 
 import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
@@ -13,9 +13,9 @@ const CHART_NAME = 'candlestick';
 interface IState {
     selectedRange: any[][];
 
-    drawCandlestickChartAllowed: boolean;
-    countIndicatorsAllowed: boolean;
-    drawROCChartAllowed: boolean;
+    drawCandlestickChartEnabled: boolean;
+    countIndicatorsEnabled: boolean;
+    drawROCChartEnabled: boolean;
 
     drawCandlestickChart: boolean;
     countIndicators: boolean;
@@ -28,9 +28,9 @@ export default class Main extends React.Component<{}, IState> {
         this.state = {
             selectedRange: null,
 
-            drawCandlestickChartAllowed: false,
-            countIndicatorsAllowed: false,
-            drawROCChartAllowed: false,
+            drawCandlestickChartEnabled: false,
+            countIndicatorsEnabled: false,
+            drawROCChartEnabled: false,
 
             drawCandlestickChart: false,
             countIndicators: false,
@@ -85,21 +85,34 @@ export default class Main extends React.Component<{}, IState> {
             const dataRange = context.workbook.getSelectedRange();
             dataRange.load('values, columnCount, rowCount');
             await context.sync();
-            const tableHeaderRowValues = Object.values(TABLE_HEADER);
-            const firstRow = dataRange[0];
+            const tableHeaderRowValues = Object.values(TABLE_HEADER_FOR_CANDLESTICK);
+            const firstRow = dataRange.values[0] || [];
 
             const rangeCandlestickChartHasRightDimensions =
                 dataRange.columnCount === 5 && dataRange.rowCount > 2;
-            const rangeandlestickChartHasRightColumns = tableHeaderRowValues.every(
+            const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(
                 value => firstRow.indexOf(value) > -1
             );
 
-            this.setState({
-                selectedRange: dataRange.values,
-                drawCandlestickChartAllowed:
-                    rangeCandlestickChartHasRightDimensions && rangeandlestickChartHasRightColumns,
-                countIndicatorsAllowed: false,
-                drawROCChartAllowed: false
+            this.setState(prevState => {
+                const newState = {
+                    selectedRange: dataRange.values,
+                    drawCandlestickChartEnabled:
+                        rangeCandlestickChartHasRightDimensions &&
+                        rangeCandlestickChartHasRightColumns,
+                    countIndicatorsEnabled: false,
+                    drawROCChartEnabled: false
+                };
+                return {
+                    ...newState,
+                    drawCandlestickChart: newState.drawCandlestickChartEnabled
+                        ? prevState.drawCandlestickChart
+                        : false,
+                    countIndicators: newState.countIndicatorsEnabled
+                        ? prevState.countIndicators
+                        : false,
+                    drawROCChart: newState.drawROCChartEnabled ? prevState.drawROCChart : false
+                };
             });
         });
     };
@@ -218,11 +231,19 @@ export default class Main extends React.Component<{}, IState> {
         });
     }
 
+    checkAtLeastOneOptionSelected = () => {
+        const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
+        return [drawCandlestickChart, countIndicators, drawROCChart].some(i => i);
+    };
+
     render() {
         const {
-            drawCandlestickChartAllowed,
-            countIndicatorsAllowed,
-            drawROCChartAllowed
+            drawCandlestickChartEnabled,
+            countIndicatorsEnabled,
+            drawROCChartEnabled,
+            drawCandlestickChart,
+            countIndicators,
+            drawROCChart
         } = this.state;
         return (
             <div className='main'>
@@ -238,26 +259,34 @@ export default class Main extends React.Component<{}, IState> {
                     </div>
                     <div className='main__action main__action_primary'>
                         <Option
-                            onChange={() => {}}
+                            onChange={checked => {
+                                this.setState({ drawCandlestickChart: checked });
+                            }}
                             optionText='draw candlestick chart'
-                            checked={false}
-                            enabled={drawCandlestickChartAllowed}
+                            checked={drawCandlestickChart}
+                            enabled={drawCandlestickChartEnabled}
                         />
                         <Option
-                            onChange={() => {}}
+                            onChange={checked => {
+                                this.setState({ countIndicators: checked });
+                            }}
                             optionText='count indicators'
-                            checked={false}
-                            enabled={countIndicatorsAllowed}
+                            checked={countIndicators}
+                            enabled={countIndicatorsEnabled}
                         />
                         <Option
-                            onChange={() => {}}
+                            onChange={checked => {
+                                this.setState({ drawROCChart: checked });
+                            }}
                             optionText='draw ROC chart'
-                            checked={true}
-                            enabled={drawROCChartAllowed}
+                            checked={drawROCChart}
+                            enabled={drawROCChartEnabled}
                         />
-                        <button className='main__primary-action-btn' onClick={() => {}}>
-                            Apply
-                        </button>
+                        {this.checkAtLeastOneOptionSelected() && (
+                            <button className='main__primary-action-btn' onClick={() => {}}>
+                                Apply
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

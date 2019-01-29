@@ -1,19 +1,27 @@
 import * as React from 'react';
+import cn from 'classnames';
 import Checkbox from '../../../components/controls/Checkbox';
 
 interface IProps {
-    onChange: (event?: React.ChangeEvent<HTMLInputElement>) => any;
+    onChange: (checked: boolean) => any;
     optionText: string;
     checked: boolean;
+    enabled: boolean;
 }
 
-export default ({ onChange, optionText, checked }: IProps) => (
+export default ({ onChange, optionText, checked, enabled }: IProps) => (
     <div className='main__option'>
         <Checkbox
-            className='main__option-checkbox'
+            className={cn('main__option-checkbox', { 'main__option-checkbox_enabled': enabled })}
             checked={checked}
-            onChange={onChange}
+            onChange={event => {
+                if (enabled) {
+                    onChange(event.currentTarget.checked);
+                }
+            }}
         />
-        <div className='main__option-label'>{optionText}</div>
+        <div className={cn('main__option-label', { 'main__option-label_enabled': enabled })}>
+            {optionText}
+        </div>
     </div>
 );
