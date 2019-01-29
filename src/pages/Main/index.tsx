@@ -8,12 +8,11 @@ import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../..
 import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
 import './styles.scss';
+import { toast } from 'react-toastify';
 
 const CHART_NAME = 'candlestick';
 
 interface IState {
-    selectedRange: any[][];
-
     drawCandlestickChartEnabled: boolean;
     countIndicatorsEnabled: boolean;
     drawROCChartEnabled: boolean;
@@ -27,8 +26,6 @@ export default class Main extends React.Component<{}, IState> {
     constructor(props) {
         super(props);
         this.state = {
-            selectedRange: null,
-
             drawCandlestickChartEnabled: false,
             countIndicatorsEnabled: false,
             drawROCChartEnabled: false,
@@ -86,36 +83,34 @@ export default class Main extends React.Component<{}, IState> {
             const dataRange = context.workbook.getSelectedRange();
             dataRange.load('values, columnCount, rowCount');
             await context.sync();
-            const tableHeaderRowValues = Object.values(TABLE_HEADER_FOR_CANDLESTICK);
-            const firstRow = dataRange.values[0] || [];
-
-            const rangeCandlestickChartHasRightDimensions =
-                dataRange.columnCount === 5 && dataRange.rowCount > 2;
-            const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(
-                value => firstRow.indexOf(value) > -1
-            );
-
-            this.setState(prevState => {
-                const newState = {
-                    selectedRange: dataRange.values,
-                    drawCandlestickChartEnabled:
-                        rangeCandlestickChartHasRightDimensions &&
-                        rangeCandlestickChartHasRightColumns,
-                    countIndicatorsEnabled: false,
-                    drawROCChartEnabled: false
-                };
-                return {
-                    ...newState,
-                    drawCandlestickChart: newState.drawCandlestickChartEnabled
-                        ? prevState.drawCandlestickChart
-                        : false,
-                    countIndicators: newState.countIndicatorsEnabled
-                        ? prevState.countIndicators
-                        : false,
-                    drawROCChart: newState.drawROCChartEnabled ? prevState.drawROCChart : false
-                };
-            });
+            this.setState(this.calculateStateAfterRangeSelection(dataRange));
         });
+    };
+
+    calculateStateAfterRangeSelection = dataRange => {
+        const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
+        const tableHeaderRowValues = Object.values(TABLE_HEADER_FOR_CANDLESTICK);
+        const firstRow = dataRange.values[0] || [];
+        const rangeCandlestickChartHasRightDimensions =
+            dataRange.columnCount === 5 && dataRange.rowCount > 2;
+        const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(
+            value => firstRow.indexOf(value) > -1
+        );
+
+        const newState = {
+            drawCandlestickChartEnabled:
+                rangeCandlestickChartHasRightDimensions && rangeCandlestickChartHasRightColumns,
+            countIndicatorsEnabled: false,
+            drawROCChartEnabled: false
+        };
+        return {
+            ...newState,
+            drawCandlestickChart: newState.drawCandlestickChartEnabled
+                ? drawCandlestickChart
+                : false,
+            countIndicators: newState.countIndicatorsEnabled ? countIndicators : false,
+            drawROCChart: newState.drawROCChartEnabled ? drawROCChart : false
+        };
     };
 
     async unsubscribeEvent(event) {
@@ -138,34 +133,51 @@ export default class Main extends React.Component<{}, IState> {
         });
     };
 
-    handleDrawChartClick = async () => {
-        await wrapExcelLogic(async context => {
-            const dataRange = context.workbook.getSelectedRange();
-            const highColumnIndex = 2;
-            const lowColumnIndex = 3;
-            const highPricesColumn = dataRange.getColumn(highColumnIndex);
-            const lowPricesColumn = dataRange.getColumn(lowColumnIndex);
-            highPricesColumn.load('values');
-            lowPricesColumn.load('values');
+    drawCandlestickChart = async () => {
+        await wrapExcelLogic(
+            async context => {
+                const dataRange = context.workbook.getSelectedRange();
+                const highColumnIndex = 2;
+                const lowColumnIndex = 3;
+                const highPricesColumn = dataRange.getColumn(highColumnIndex);
+                const lowPricesColumn = dataRange.getColumn(lowColumnIndex);
+                highPricesColumn.load('values');
+                lowPricesColumn.load('values');
 
-            const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            const candlestickChart = worksheet.charts.add(Excel.ChartType.stockOHLC, dataRange);
+                const worksheet = context.workbook.worksheets.getActiveWorksheet();
+                const candlestickChart = worksheet.charts.add(Excel.ChartType.stockOHLC, dataRange);
 
-            candlestickChart.name = CHART_NAME;
-            candlestickChart.title.text = 'Candlesticks';
-            candlestickChart.height = 200;
-            candlestickChart.width = 500;
-            candlestickChart.top = 0;
-            await context.sync();
+                candlestickChart.name = CHART_NAME;
+                candlestickChart.title.text = 'Candlesticks';
+                candlestickChart.height = 200;
+                candlestickChart.width = 500;
+                candlestickChart.top = 0;
+                await context.sync();
 
-            const verticalAxis = candlestickChart.axes.valueAxis;
-            verticalAxis.maximum = Math.max(...mapColumnIntoArrayOfValues(highPricesColumn.values));
-            verticalAxis.minimum = Math.min(...mapColumnIntoArrayOfValues(lowPricesColumn.values));
-            await context.sync();
-        });
+                const verticalAxis = candlestickChart.axes.valueAxis;
+                verticalAxis.maximum = Math.max(
+                    ...mapColumnIntoArrayOfValues(highPricesColumn.values)
+                );
+                verticalAxis.minimum = Math.min(
+                    ...mapColumnIntoArrayOfValues(lowPricesColumn.values)
+                );
+                await context.sync();
+            },
+            error => {
+                if (error.code === Excel.ErrorCodes.invalidSelection) {
+                    toast.error('Your selection is out of focus. Please reselect it.', {
+                        autoClose: false
+                    });
+                } else {
+                    toast.error(`Error occured. ${error.message}`, {
+                        autoClose: false
+                    });
+                }
+            }
+        );
     };
 
-    handleCountIndicatorsClick = async () => {
+    countIndicators = async () => {
         await this.clearIndicatorsRange();
         await wrapExcelLogic(async context => {
             const dataRange = context.workbook.getSelectedRange();
@@ -237,6 +249,18 @@ export default class Main extends React.Component<{}, IState> {
         return [drawCandlestickChart, countIndicators, drawROCChart].some(i => i);
     };
 
+    handleApplyClicked = () => {
+        const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
+        if (drawCandlestickChart) {
+            this.drawCandlestickChart();
+        }
+        if (countIndicators) {
+            this.countIndicators();
+        }
+        if (drawROCChart) {
+        }
+    };
+
     render() {
         const {
             drawCandlestickChartEnabled,
@@ -287,7 +311,7 @@ export default class Main extends React.Component<{}, IState> {
                             className={cn('main__primary-action-btn', {
                                 'main__primary-action-btn_disabled': !this.checkAtLeastOneOptionSelected()
                             })}
-                            onClick={() => {}}
+                            onClick={this.handleApplyClicked}
                         >
                             Apply
                         </button>

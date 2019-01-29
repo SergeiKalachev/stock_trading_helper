@@ -10,12 +10,18 @@ export function getServerHost() {
     return host;
 }
 
-export async function wrapExcelLogic(logic: (context: Excel.RequestContext) => any) {
+export async function wrapExcelLogic(
+    logic: (context: Excel.RequestContext) => any,
+    errorHandler?: (error: OfficeExtension.Error) => any
+) {
     try {
-        return await Excel.run(logic);
+        await Excel.run(logic);
     } catch (error) {
-        OfficeHelpers.UI.notify(error);
-        throw error;
+        if (errorHandler) {
+            errorHandler(error);
+        } else {
+            OfficeHelpers.UI.notify(error);
+        }
     }
 }
 
