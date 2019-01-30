@@ -2,13 +2,12 @@ import * as React from 'react';
 import cn from 'classnames';
 import Option from './Option';
 import { TABLE_HEADER } from '../../helpers/constants';
-// import { toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
 import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
 import './styles.scss';
-import { toast } from 'react-toastify';
 
 const CHART_NAME = 'candlestick';
 
@@ -35,8 +34,12 @@ export default class Main extends React.Component<{}, IState> {
             drawROCChart: false
         };
     }
-    selectionChangedEvent = null;
-    sheetActivatedEvent = null;
+    selectionChangedEvent: OfficeExtension.EventHandlerResult<
+        Excel.WorksheetSelectionChangedEventArgs
+    > = null;
+    sheetActivatedEvent: OfficeExtension.EventHandlerResult<
+        Excel.WorksheetActivatedEventArgs
+    > = null;
 
     async componentDidMount() {
         await wrapExcelLogic(async context => {
@@ -68,7 +71,7 @@ export default class Main extends React.Component<{}, IState> {
         });
     };
 
-    resetRangeToA1 = context => {
+    resetRangeToA1 = (context: Excel.RequestContext) => {
         const worksheet = context.workbook.worksheets.getActiveWorksheet();
         worksheet.getRange('A1').select();
     };
@@ -87,7 +90,7 @@ export default class Main extends React.Component<{}, IState> {
         });
     };
 
-    calculateStateAfterRangeSelection = dataRange => {
+    calculateStateAfterRangeSelection = (dataRange: Excel.Range) => {
         const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
         const { Date, Open, High, Low, Close } = TABLE_HEADER;
         const tableHeaderRowValues = [Date, Open, High, Low, Close];
@@ -121,7 +124,7 @@ export default class Main extends React.Component<{}, IState> {
         };
     };
 
-    async unsubscribeEvent(event) {
+    async unsubscribeEvent(event: OfficeExtension.EventHandlerResult<any>) {
         await Excel.run(event.context, async context => {
             event.remove();
             await context.sync();
@@ -188,24 +191,37 @@ export default class Main extends React.Component<{}, IState> {
     countIndicators = async () => {
         await this.clearIndicatorsRange();
         await wrapExcelLogic(async context => {
-            const dataRange = context.workbook.getSelectedRange();
+            const { drawCandlestickChartEnabled } = this.state;
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            dataRange.load(['address', 'values', 'columnCount']);
+            const selectedRange = context.workbook.getSelectedRange();
+
+            let rangeToUse = drawCandlestickChartEnabled
+                ? selectedRange.getLastColumn()
+                : selectedRange;
+
+            rangeToUse.load(['address', 'values', 'columnCount']);
             worksheet.load('name');
             await context.sync();
+            // If column starts with "OPEN" or "CLOSE" etc.
+            if (isNaN(+rangeToUse.values[0][0])) {
+                // Then take sub-range without row with "OPEN" or "CLOSE"
+                rangeToUse = rangeToUse.getOffsetRange(1, 0).getResizedRange(-1, 0);
+                rangeToUse.load(['address', 'values', 'columnCount']);
+                await context.sync();
+            }
+            const rangeToUseAddress = rangeToUse.address.replace(`${worksheet.name}!`, '');
 
-            const dataRangeAddress = dataRange.address.replace(`${worksheet.name}!`, '');
-
-            const outputSMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'F');
+            const outputSMARangeAddress = rangeToUseAddress.replace(/[a-zA-Z]/g, 'F');
             const outputSMARange = worksheet.getRange(outputSMARangeAddress);
 
-            const outputEMARangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'G');
+            const outputEMARangeAddress = rangeToUseAddress.replace(/[a-zA-Z]/g, 'G');
             const outputEMARange = worksheet.getRange(outputEMARangeAddress);
 
-            const outputROCRangeAddress = dataRangeAddress.replace(/[a-zA-Z]/g, 'H');
+            const outputROCRangeAddress = rangeToUseAddress.replace(/[a-zA-Z]/g, 'H');
             const outputROCRange = worksheet.getRange(outputROCRangeAddress);
 
-            const prices = dataRange.values.map(item => item[0]);
+            const prices = rangeToUse.values.map(item => item[0]);
+
             outputSMARange.values = calculateSMA(prices, 5);
             outputEMARange.values = calculateEMA(prices, 5);
             outputROCRange.values = calculateROC(prices, 5);
@@ -230,7 +246,7 @@ export default class Main extends React.Component<{}, IState> {
         });
     }
 
-    clearIndicatorRange(worksheet, column, title) {
+    clearIndicatorRange(worksheet: Excel.Worksheet, column: string, title: string): void {
         const range = worksheet.getRange(`${column}:${column}`);
         const titleCell = worksheet.getRange(`${column}1`);
         range.clear(Excel.ClearApplyTo.contents);
