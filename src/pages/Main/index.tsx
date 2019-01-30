@@ -1,7 +1,7 @@
 import * as React from 'react';
 import cn from 'classnames';
 import Option from './Option';
-import { TABLE_HEADER, TABLE_HEADER_FOR_CANDLESTICK } from '../../helpers/constants';
+import { TABLE_HEADER } from '../../helpers/constants';
 // import { toast } from 'react-toastify';
 
 import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
@@ -89,18 +89,26 @@ export default class Main extends React.Component<{}, IState> {
 
     calculateStateAfterRangeSelection = dataRange => {
         const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
-        const tableHeaderRowValues = Object.values(TABLE_HEADER_FOR_CANDLESTICK);
+        const { Date, Open, High, Low, Close } = TABLE_HEADER;
+        const tableHeaderRowValues = [Date, Open, High, Low, Close];
         const firstRow = dataRange.values[0] || [];
         const rangeCandlestickChartHasRightDimensions =
             dataRange.columnCount === 5 && dataRange.rowCount > 2;
         const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(
             value => firstRow.indexOf(value) > -1
         );
+        const drawCandlestickChartEnabled =
+            rangeCandlestickChartHasRightDimensions && rangeCandlestickChartHasRightColumns;
+
+        const countIndicatorsHasRightDimensons =
+            dataRange.columnCount === 1 && dataRange.rowCount > 2;
+
+        const countIndicatorsEnabled =
+            drawCandlestickChartEnabled || countIndicatorsHasRightDimensons;
 
         const newState = {
-            drawCandlestickChartEnabled:
-                rangeCandlestickChartHasRightDimensions && rangeCandlestickChartHasRightColumns,
-            countIndicatorsEnabled: false,
+            drawCandlestickChartEnabled,
+            countIndicatorsEnabled,
             drawROCChartEnabled: false
         };
         return {
@@ -214,9 +222,9 @@ export default class Main extends React.Component<{}, IState> {
         await wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
 
-            this.clearIndicatorRange(worksheet, 'F', TABLE_HEADER.SMA);
-            this.clearIndicatorRange(worksheet, 'G', TABLE_HEADER.EMA);
-            this.clearIndicatorRange(worksheet, 'H', TABLE_HEADER.ROC);
+            this.clearIndicatorRange(worksheet, 'F', TABLE_HEADER.Sma);
+            this.clearIndicatorRange(worksheet, 'G', TABLE_HEADER.Ema);
+            this.clearIndicatorRange(worksheet, 'H', TABLE_HEADER.Roc);
 
             await context.sync();
         });

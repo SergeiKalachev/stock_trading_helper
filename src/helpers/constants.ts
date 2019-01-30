@@ -1,14 +1,10 @@
-export const TABLE_HEADER_FOR_CANDLESTICK = {
-    DATE: 'DATE',
-    OPEN: 'OPEN',
-    HIGH: 'HIGH',
-    LOW: 'LOW',
-    CLOSE: 'CLOSE'
-};
-
-export const TABLE_HEADER = {
-    ...TABLE_HEADER_FOR_CANDLESTICK,
-    SMA: 'SMA',
-    EMA: 'EMA',
-    ROC: 'ROC'
-};
+export enum TABLE_HEADER {
+    Date = 'DATE',
+    Open = 'OPEN',
+    High = 'HIGH',
+    Low = 'LOW',
+    Close = 'CLOSE',
+    Sma = 'SMA',
+    Ema = 'EMA',
+    Roc = 'ROC'
+}
