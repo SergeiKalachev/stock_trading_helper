@@ -8,3 +8,8 @@ export enum TABLE_HEADER {
     Ema = 'EMA',
     Roc = 'ROC'
 }
+
+export enum CHART_NAMES {
+    Candlestick = 'candlestick',
+    Roc = 'rate of change'
+}

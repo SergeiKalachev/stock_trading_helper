@@ -1,7 +1,7 @@
 import * as React from 'react';
 import cn from 'classnames';
 import Option from './Option';
-import { TABLE_HEADER } from '../../helpers/constants';
+import { TABLE_HEADER, CHART_NAMES } from '../../helpers/constants';
 import { toast } from 'react-toastify';
 
 import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
@@ -9,12 +9,9 @@ import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicato
 
 import './styles.scss';
 
-const CHART_NAME = 'candlestick';
-
 interface IState {
     drawCandlestickChartEnabled: boolean;
     countIndicatorsEnabled: boolean;
-    drawROCChartEnabled: boolean;
 
     drawCandlestickChart: boolean;
     countIndicators: boolean;
@@ -27,7 +24,6 @@ export default class Main extends React.Component<{}, IState> {
         this.state = {
             drawCandlestickChartEnabled: false,
             countIndicatorsEnabled: false,
-            drawROCChartEnabled: false,
 
             drawCandlestickChart: false,
             countIndicators: false,
@@ -91,7 +87,7 @@ export default class Main extends React.Component<{}, IState> {
     };
 
     calculateStateAfterRangeSelection = (dataRange: Excel.Range) => {
-        const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
+        const { drawCandlestickChart, countIndicators } = this.state;
         const { Date, Open, High, Low, Close } = TABLE_HEADER;
         const tableHeaderRowValues = [Date, Open, High, Low, Close];
         const firstRow = dataRange.values[0] || [];
@@ -111,16 +107,14 @@ export default class Main extends React.Component<{}, IState> {
 
         const newState = {
             drawCandlestickChartEnabled,
-            countIndicatorsEnabled,
-            drawROCChartEnabled: false
+            countIndicatorsEnabled
         };
         return {
             ...newState,
             drawCandlestickChart: newState.drawCandlestickChartEnabled
                 ? drawCandlestickChart
                 : false,
-            countIndicators: newState.countIndicatorsEnabled ? countIndicators : false,
-            drawROCChart: newState.drawROCChartEnabled ? drawROCChart : false
+            countIndicators: newState.countIndicatorsEnabled ? countIndicators : false
         };
     };
 
@@ -158,7 +152,7 @@ export default class Main extends React.Component<{}, IState> {
                 const worksheet = context.workbook.worksheets.getActiveWorksheet();
                 const candlestickChart = worksheet.charts.add(Excel.ChartType.stockOHLC, dataRange);
 
-                candlestickChart.name = CHART_NAME;
+                candlestickChart.name = CHART_NAMES.Candlestick;
                 candlestickChart.title.text = 'Candlesticks';
                 candlestickChart.height = 200;
                 candlestickChart.width = 500;
@@ -191,13 +185,10 @@ export default class Main extends React.Component<{}, IState> {
     countIndicators = async () => {
         await this.clearIndicatorsRange();
         await wrapExcelLogic(async context => {
-            const { drawCandlestickChartEnabled } = this.state;
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
             const selectedRange = context.workbook.getSelectedRange();
 
-            let rangeToUse = drawCandlestickChartEnabled
-                ? selectedRange.getLastColumn()
-                : selectedRange;
+            let rangeToUse = this.defineRangeToUse(selectedRange);
 
             rangeToUse.load(['address', 'values', 'columnCount']);
             worksheet.load('name');
@@ -227,6 +218,28 @@ export default class Main extends React.Component<{}, IState> {
             outputROCRange.values = calculateROC(prices, 5);
             await context.sync();
         });
+    };
+
+    drawROCChart = async () => {
+        wrapExcelLogic(async context => {
+            const worksheet = context.workbook.worksheets.getActiveWorksheet();
+            const selectedRange = context.workbook.getSelectedRange();
+
+            const rangeToUse = this.defineRangeToUse(selectedRange);
+            const ROCChart = worksheet.charts.add(Excel.ChartType.lineMarkers, rangeToUse);
+
+            ROCChart.name = CHART_NAMES.Roc;
+            ROCChart.title.text = 'Rate of change';
+            ROCChart.height = 200;
+            ROCChart.width = 500;
+            ROCChart.top = 210;
+            await context.sync();
+        });
+    };
+
+    defineRangeToUse = (selectedRange: Excel.Range): Excel.Range => {
+        const { drawCandlestickChartEnabled } = this.state;
+        return drawCandlestickChartEnabled ? selectedRange.getLastColumn() : selectedRange;
     };
 
     handleResetClick = async () => {
@@ -260,7 +273,7 @@ export default class Main extends React.Component<{}, IState> {
             await context.sync();
 
             for (const chart of worksheet.charts.items) {
-                if (chart.name === CHART_NAME) {
+                if (chart.name === CHART_NAMES.Candlestick || chart.name === CHART_NAMES.Roc) {
                     chart.delete();
                 }
             }
@@ -269,19 +282,20 @@ export default class Main extends React.Component<{}, IState> {
     }
 
     checkAtLeastOneOptionSelected = () => {
-        const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
-        return [drawCandlestickChart, countIndicators, drawROCChart].some(i => i);
+        const { drawCandlestickChart, countIndicators } = this.state;
+        return [drawCandlestickChart, countIndicators].some(i => i);
     };
 
-    handleApplyClicked = () => {
+    handleApplyClicked = async () => {
         const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
         if (drawCandlestickChart) {
-            this.drawCandlestickChart();
+            this.drawCandlestickChart(); // don't need to wait here
         }
         if (countIndicators) {
-            this.countIndicators();
+            await this.countIndicators();
         }
-        if (drawROCChart) {
+        if (countIndicators && drawROCChart) {
+            await this.drawROCChart(); // should go after countIndicators
         }
     };
 
@@ -289,7 +303,6 @@ export default class Main extends React.Component<{}, IState> {
         const {
             drawCandlestickChartEnabled,
             countIndicatorsEnabled,
-            drawROCChartEnabled,
             drawCandlestickChart,
             countIndicators,
             drawROCChart
@@ -317,19 +330,24 @@ export default class Main extends React.Component<{}, IState> {
                         />
                         <Option
                             onChange={checked => {
-                                this.setState({ countIndicators: checked });
+                                if (!checked) {
+                                    this.setState({
+                                        countIndicators: checked,
+                                        drawROCChart: false
+                                    });
+                                } else {
+                                    this.setState({ countIndicators: checked });
+                                }
                             }}
                             optionText='count indicators'
                             checked={countIndicators}
                             enabled={countIndicatorsEnabled}
                         />
                         <Option
-                            onChange={checked => {
-                                this.setState({ drawROCChart: checked });
-                            }}
+                            onChange={checked => this.setState({ drawROCChart: checked })}
                             optionText='draw ROC chart'
-                            checked={drawROCChart}
-                            enabled={drawROCChartEnabled}
+                            checked={countIndicators && drawROCChart}
+                            enabled={countIndicators} // allow drawROCChart when countIndicators option checked
                         />
                         <button
                             className={cn('main__primary-action-btn', {
