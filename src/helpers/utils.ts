@@ -57,6 +57,10 @@ export function mapColumnIntoArrayOfValues(column: any[][]) {
     return column.slice(1).map(elem => elem[0]);
 }
 
+export function changeAddressColumn(address: string, column: string): string {
+    return address.replace(/[a-zA-Z]/g, column);
+}
+
 export function getArrayWithMultipleItems(item, countToMultiply) {
     let result = [];
     for (let i = 0; i < countToMultiply; i++) {

@@ -1,10 +1,16 @@
 import * as React from 'react';
 import cn from 'classnames';
-import Option from './Option';
-import { TABLE_HEADER, CHART_NAMES } from '../../helpers/constants';
 import { toast } from 'react-toastify';
 
-import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost } from '../../helpers/utils';
+import Option from './Option';
+import { TABLE_HEADER, CHART_NAMES } from '../../helpers/constants';
+
+import {
+    wrapExcelLogic,
+    mapColumnIntoArrayOfValues,
+    getServerHost,
+    changeAddressColumn
+} from '../../helpers/utils';
 import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
 import './styles.scss';
@@ -36,6 +42,7 @@ export default class Main extends React.Component<{}, IState> {
     sheetActivatedEvent: OfficeExtension.EventHandlerResult<
         Excel.WorksheetActivatedEventArgs
     > = null;
+    addressForCountIndicators: string = null;
 
     async componentDidMount() {
         await wrapExcelLogic(async context => {
@@ -80,17 +87,17 @@ export default class Main extends React.Component<{}, IState> {
     handleSelectionChange = async () => {
         await wrapExcelLogic(async context => {
             const dataRange = context.workbook.getSelectedRange();
-            dataRange.load('values, columnCount, rowCount');
+            dataRange.load(['values', 'columnCount', 'rowCount']);
             await context.sync();
             this.setState(this.calculateStateAfterRangeSelection(dataRange));
         });
     };
 
     calculateStateAfterRangeSelection = (dataRange: Excel.Range) => {
-        const { drawCandlestickChart, countIndicators } = this.state;
+        const { drawCandlestickChart, countIndicators, drawROCChart } = this.state;
         const { Date, Open, High, Low, Close } = TABLE_HEADER;
         const tableHeaderRowValues = [Date, Open, High, Low, Close];
-        const firstRow = dataRange.values[0] || [];
+        const firstRow = dataRange.values ? dataRange.values[0] : [];
         const rangeCandlestickChartHasRightDimensions =
             dataRange.columnCount === 5 && dataRange.rowCount > 2;
         const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(
@@ -114,7 +121,8 @@ export default class Main extends React.Component<{}, IState> {
             drawCandlestickChart: newState.drawCandlestickChartEnabled
                 ? drawCandlestickChart
                 : false,
-            countIndicators: newState.countIndicatorsEnabled ? countIndicators : false
+            countIndicators: newState.countIndicatorsEnabled ? countIndicators : false,
+            drawROCChart: newState.countIndicatorsEnabled ? drawROCChart : false
         };
     };
 
@@ -200,15 +208,15 @@ export default class Main extends React.Component<{}, IState> {
                 rangeToUse.load(['address', 'values', 'columnCount']);
                 await context.sync();
             }
-            const rangeToUseAddress = rangeToUse.address.replace(`${worksheet.name}!`, '');
+            this.addressForCountIndicators = rangeToUse.address.replace(`${worksheet.name}!`, '');
 
-            const outputSMARangeAddress = rangeToUseAddress.replace(/[a-zA-Z]/g, 'F');
+            const outputSMARangeAddress = changeAddressColumn(this.addressForCountIndicators, 'F');
             const outputSMARange = worksheet.getRange(outputSMARangeAddress);
 
-            const outputEMARangeAddress = rangeToUseAddress.replace(/[a-zA-Z]/g, 'G');
+            const outputEMARangeAddress = changeAddressColumn(this.addressForCountIndicators, 'G');
             const outputEMARange = worksheet.getRange(outputEMARangeAddress);
 
-            const outputROCRangeAddress = rangeToUseAddress.replace(/[a-zA-Z]/g, 'H');
+            const outputROCRangeAddress = changeAddressColumn(this.addressForCountIndicators, 'H');
             const outputROCRange = worksheet.getRange(outputROCRangeAddress);
 
             const prices = rangeToUse.values.map(item => item[0]);
@@ -223,16 +231,27 @@ export default class Main extends React.Component<{}, IState> {
     drawROCChart = async () => {
         wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            const selectedRange = context.workbook.getSelectedRange();
-
-            const rangeToUse = this.defineRangeToUse(selectedRange);
-            const ROCChart = worksheet.charts.add(Excel.ChartType.lineMarkers, rangeToUse);
+            const ROCRangeAddress = changeAddressColumn(this.addressForCountIndicators, 'H');
+            const ROCRange = worksheet.getRange(ROCRangeAddress);
+            const ROCChart = worksheet.charts.add(Excel.ChartType.lineMarkers, ROCRange);
 
             ROCChart.name = CHART_NAMES.Roc;
             ROCChart.title.text = 'Rate of change';
             ROCChart.height = 200;
             ROCChart.width = 500;
             ROCChart.top = 210;
+
+            ROCRange.load('address');
+            await context.sync();
+
+            const ROCDateValuesAddress = changeAddressColumn(ROCRangeAddress, 'A');
+            const ROCDateValuesRange = worksheet.getRange(ROCDateValuesAddress);
+
+            const categoryAxis = ROCChart.axes.categoryAxis;
+            categoryAxis.setCategoryNames(ROCDateValuesRange);
+            categoryAxis.format.font.color = '#868686';
+            categoryAxis.format.line.weight = 2;
+            categoryAxis.format.line.color = '#232323';
             await context.sync();
         });
     };
