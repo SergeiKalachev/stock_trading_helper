@@ -13,6 +13,8 @@ import {
 } from '../../helpers/utils';
 import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
 
+import dataStore from '../../stores/dataStore';
+
 import './styles.scss';
 
 interface IState {
@@ -36,18 +38,11 @@ export default class Main extends React.Component<{}, IState> {
             drawROCChart: false
         };
     }
-    selectionChangedEvent: OfficeExtension.EventHandlerResult<
-        Excel.WorksheetSelectionChangedEventArgs
-    > = null;
-    sheetActivatedEvent: OfficeExtension.EventHandlerResult<
-        Excel.WorksheetActivatedEventArgs
-    > = null;
-    addressForCountIndicators: string = null;
 
     async componentDidMount() {
         await wrapExcelLogic(async context => {
             const sheets = context.workbook.worksheets;
-            this.sheetActivatedEvent = sheets.onActivated.add(this.resubscribeSelectionEvent);
+            dataStore.sheetActivatedEvent = sheets.onActivated.add(this.resubscribeSelectionEvent);
 
             await this.subscribeSelectionEvent();
             await context.sync();
@@ -57,7 +52,7 @@ export default class Main extends React.Component<{}, IState> {
     subscribeSelectionEvent = async () => {
         await wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            this.selectionChangedEvent = worksheet.onSelectionChanged.add(
+            dataStore.selectionChangedEvent = worksheet.onSelectionChanged.add(
                 this.handleSelectionChange
             );
             this.resetRangeToA1(context);
@@ -66,8 +61,8 @@ export default class Main extends React.Component<{}, IState> {
     };
 
     resubscribeSelectionEvent = async () => {
-        await Excel.run(this.selectionChangedEvent.context, async context => {
-            this.selectionChangedEvent.remove();
+        await Excel.run(dataStore.selectionChangedEvent.context, async context => {
+            dataStore.selectionChangedEvent.remove();
             await this.subscribeSelectionEvent();
 
             await context.sync();
@@ -80,8 +75,8 @@ export default class Main extends React.Component<{}, IState> {
     };
 
     async componentWillUnmount() {
-        await this.unsubscribeEvent(this.selectionChangedEvent);
-        await this.unsubscribeEvent(this.sheetActivatedEvent);
+        await this.unsubscribeEvent(dataStore.selectionChangedEvent);
+        await this.unsubscribeEvent(dataStore.sheetActivatedEvent);
     }
 
     handleSelectionChange = async () => {
@@ -208,30 +203,54 @@ export default class Main extends React.Component<{}, IState> {
                 rangeToUse.load(['address', 'values', 'columnCount']);
                 await context.sync();
             }
-            this.addressForCountIndicators = rangeToUse.address.replace(`${worksheet.name}!`, '');
+            dataStore.addressForCountIndicators = rangeToUse.address.replace(
+                `${worksheet.name}!`,
+                ''
+            );
 
-            const outputSMARangeAddress = changeAddressColumn(this.addressForCountIndicators, 'F');
-            const outputSMARange = worksheet.getRange(outputSMARangeAddress);
+            dataStore.SMARangeAddress = changeAddressColumn(
+                dataStore.addressForCountIndicators,
+                'F'
+            );
+            const outputSMARange = worksheet.getRange(dataStore.SMARangeAddress);
 
-            const outputEMARangeAddress = changeAddressColumn(this.addressForCountIndicators, 'G');
-            const outputEMARange = worksheet.getRange(outputEMARangeAddress);
+            dataStore.EMARangeAddress = changeAddressColumn(
+                dataStore.addressForCountIndicators,
+                'G'
+            );
+            const outputEMARange = worksheet.getRange(dataStore.EMARangeAddress);
 
-            const outputROCRangeAddress = changeAddressColumn(this.addressForCountIndicators, 'H');
-            const outputROCRange = worksheet.getRange(outputROCRangeAddress);
+            dataStore.ROCRangeAddress = changeAddressColumn(
+                dataStore.addressForCountIndicators,
+                'H'
+            );
+            const outputROCRange = worksheet.getRange(dataStore.ROCRangeAddress);
 
             const prices = rangeToUse.values.map(item => item[0]);
 
-            outputSMARange.values = calculateSMA(prices, 5);
-            outputEMARange.values = calculateEMA(prices, 5);
-            outputROCRange.values = calculateROC(prices, 5);
+            dataStore.SMAValues = calculateSMA(prices, 5);
+            dataStore.EMAValues = calculateEMA(prices, 5);
+            dataStore.ROCValues = calculateROC(prices, 5);
+
+            outputSMARange.values = dataStore.SMAValues.map(v => [v]);
+            outputEMARange.values = dataStore.EMAValues.map(v => [v]);
+            outputROCRange.values = dataStore.ROCValues.map(v => [v]);
             await context.sync();
+        });
+    };
+
+    calculateSignals = async () => {
+        wrapExcelLogic(async context => {
+            const worksheet = context.workbook.worksheets.getActiveWorksheet();
+            const pricesRange = worksheet.getRange(dataStore.addressForCountIndicators);
+            console.log(pricesRange);
         });
     };
 
     drawROCChart = async () => {
         wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            const ROCRangeAddress = changeAddressColumn(this.addressForCountIndicators, 'H');
+            const ROCRangeAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'H');
             const ROCRange = worksheet.getRange(ROCRangeAddress);
             const ROCChart = worksheet.charts.add(Excel.ChartType.lineMarkers, ROCRange);
 
@@ -312,6 +331,7 @@ export default class Main extends React.Component<{}, IState> {
         }
         if (countIndicators) {
             await this.countIndicators();
+            await this.calculateSignals();
         }
         if (countIndicators && drawROCChart) {
             await this.drawROCChart(); // should go after countIndicators
