@@ -1,6 +1,6 @@
 import { getArrayWithMultipleItems } from './utils';
 
-export function calculateSMA(prices: any[], period: number): any[] {
+export function calcSMA(prices: any[], period: number): any[] {
     const SMA = [];
     for (let i = 0; i < prices.length; i++) {
         let SMAForPeriod = 0;
@@ -15,7 +15,7 @@ export function calculateSMA(prices: any[], period: number): any[] {
     return SMA;
 }
 
-export function calculateEMA(prices: any[], period: number): any[] {
+export function calcEMA(prices: any[], period: number): any[] {
     const initialEMAValue = prices[0];
     const EMA = [];
     EMA.push(initialEMAValue);
@@ -28,7 +28,7 @@ export function calculateEMA(prices: any[], period: number): any[] {
     return EMA;
 }
 
-export function calculateROC(prices: any[], period: number): any[] {
+export function calcROC(prices: any[], period: number): any[] {
     const ROC = getArrayWithMultipleItems(0, period);
 
     for (let i = period; i < prices.length; i++) {
@@ -36,4 +36,10 @@ export function calculateROC(prices: any[], period: number): any[] {
         ROC.push(ROCForPeriod);
     }
     return ROC;
+}
+
+export function calcSignalSMA(SMARange: Excel.Range, SMAValues: any[], prices: any[]): void {
+    console.log(SMARange);
+    console.log(SMAValues);
+    console.log(prices);
 }

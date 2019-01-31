@@ -13,6 +13,7 @@ class DataStore {
     SMAValues: any[];
     EMAValues: any[];
     ROCValues: any[];
+    prices: any[];
 }
 
 const dataStore = new DataStore();

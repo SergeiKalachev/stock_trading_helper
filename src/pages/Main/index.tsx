@@ -11,7 +11,7 @@ import {
     getServerHost,
     changeAddressColumn
 } from '../../helpers/utils';
-import { calculateSMA, calculateEMA, calculateROC } from '../../helpers/indicatorsHelper';
+import { calcSMA, calcEMA, calcROC, calcSignalSMA } from '../../helpers/indicatorsHelper';
 
 import dataStore from '../../stores/dataStore';
 
@@ -228,9 +228,10 @@ export default class Main extends React.Component<{}, IState> {
 
             const prices = rangeToUse.values.map(item => item[0]);
 
-            dataStore.SMAValues = calculateSMA(prices, 5);
-            dataStore.EMAValues = calculateEMA(prices, 5);
-            dataStore.ROCValues = calculateROC(prices, 5);
+            dataStore.prices = prices;
+            dataStore.SMAValues = calcSMA(prices, 5);
+            dataStore.EMAValues = calcEMA(prices, 5);
+            dataStore.ROCValues = calcROC(prices, 5);
 
             outputSMARange.values = dataStore.SMAValues.map(v => [v]);
             outputEMARange.values = dataStore.EMAValues.map(v => [v]);
@@ -242,8 +243,10 @@ export default class Main extends React.Component<{}, IState> {
     calculateSignals = async () => {
         wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            const pricesRange = worksheet.getRange(dataStore.addressForCountIndicators);
-            console.log(pricesRange);
+            const SMARange = worksheet.getRange(dataStore.SMARangeAddress);
+            // const EMARange = worksheet.getRange(dataStore.EMARangeAddress);
+            // const ROCRange = worksheet.getRange(dataStore.ROCRangeAddress);
+            calcSignalSMA(SMARange, dataStore.SMAValues, dataStore.prices);
         });
     };
 
