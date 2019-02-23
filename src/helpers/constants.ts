@@ -6,7 +6,10 @@ export enum TABLE_HEADER {
     Close = 'CLOSE',
     Sma = 'SMA',
     Ema = 'EMA',
-    Roc = 'ROC'
+    Roc = 'ROC',
+    SmaSignal = 'SMA Signal',
+    EmaSignal = 'EMA Signal',
+    RocSignal = 'ROC Signal'
 }
 
 export enum CHART_NAMES {

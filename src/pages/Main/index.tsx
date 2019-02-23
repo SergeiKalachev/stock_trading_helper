@@ -5,13 +5,9 @@ import { toast } from 'react-toastify';
 import Option from './Option';
 import { TABLE_HEADER, CHART_NAMES } from '../../helpers/constants';
 
-import {
-    wrapExcelLogic,
-    mapColumnIntoArrayOfValues,
-    getServerHost,
-    changeAddressColumn
-} from '../../helpers/utils';
+import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost, changeAddressColumn } from '../../helpers/utils';
 import { calcSMA, calcEMA, calcROC, calcSignalSMA } from '../../helpers/indicatorsHelper';
+import { signal } from '../../models';
 
 import dataStore from '../../stores/dataStore';
 
@@ -52,9 +48,7 @@ export default class Main extends React.Component<{}, IState> {
     subscribeSelectionEvent = async () => {
         await wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            dataStore.selectionChangedEvent = worksheet.onSelectionChanged.add(
-                this.handleSelectionChange
-            );
+            dataStore.selectionChangedEvent = worksheet.onSelectionChanged.add(this.handleSelectionChange);
             this.resetRangeToA1(context);
             await context.sync();
         });
@@ -93,19 +87,13 @@ export default class Main extends React.Component<{}, IState> {
         const { Date, Open, High, Low, Close } = TABLE_HEADER;
         const tableHeaderRowValues = [Date, Open, High, Low, Close];
         const firstRow = dataRange.values ? dataRange.values[0] : [];
-        const rangeCandlestickChartHasRightDimensions =
-            dataRange.columnCount === 5 && dataRange.rowCount > 2;
-        const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(
-            value => firstRow.indexOf(value) > -1
-        );
-        const drawCandlestickChartEnabled =
-            rangeCandlestickChartHasRightDimensions && rangeCandlestickChartHasRightColumns;
+        const rangeCandlestickChartHasRightDimensions = dataRange.columnCount === 5 && dataRange.rowCount > 2;
+        const rangeCandlestickChartHasRightColumns = tableHeaderRowValues.every(value => firstRow.indexOf(value) > -1);
+        const drawCandlestickChartEnabled = rangeCandlestickChartHasRightDimensions && rangeCandlestickChartHasRightColumns;
 
-        const countIndicatorsHasRightDimensons =
-            dataRange.columnCount === 1 && dataRange.rowCount > 2;
+        const countIndicatorsHasRightDimensons = dataRange.columnCount === 1 && dataRange.rowCount > 2;
 
-        const countIndicatorsEnabled =
-            drawCandlestickChartEnabled || countIndicatorsHasRightDimensons;
+        const countIndicatorsEnabled = drawCandlestickChartEnabled || countIndicatorsHasRightDimensons;
 
         const newState = {
             drawCandlestickChartEnabled,
@@ -113,9 +101,7 @@ export default class Main extends React.Component<{}, IState> {
         };
         return {
             ...newState,
-            drawCandlestickChart: newState.drawCandlestickChartEnabled
-                ? drawCandlestickChart
-                : false,
+            drawCandlestickChart: newState.drawCandlestickChartEnabled ? drawCandlestickChart : false,
             countIndicators: newState.countIndicatorsEnabled ? countIndicators : false,
             drawROCChart: newState.countIndicatorsEnabled ? drawROCChart : false
         };
@@ -131,7 +117,7 @@ export default class Main extends React.Component<{}, IState> {
     createSheet = async () => {
         await wrapExcelLogic(async context => {
             const newWorksheet = context.workbook.worksheets.add();
-            const table = newWorksheet.tables.add('A1:H50', true);
+            const table = newWorksheet.tables.add('A1:K50', true);
             table.getHeaderRowRange().values = [Object.values(TABLE_HEADER)];
             newWorksheet.activate();
             Office.context.ui.displayDialogAsync(`${getServerHost()}/#/table-insertion-tip`, {
@@ -163,12 +149,8 @@ export default class Main extends React.Component<{}, IState> {
                 await context.sync();
 
                 const verticalAxis = candlestickChart.axes.valueAxis;
-                verticalAxis.maximum = Math.max(
-                    ...mapColumnIntoArrayOfValues(highPricesColumn.values)
-                );
-                verticalAxis.minimum = Math.min(
-                    ...mapColumnIntoArrayOfValues(lowPricesColumn.values)
-                );
+                verticalAxis.maximum = Math.max(...mapColumnIntoArrayOfValues(highPricesColumn.values));
+                verticalAxis.minimum = Math.min(...mapColumnIntoArrayOfValues(lowPricesColumn.values));
                 await context.sync();
             },
             error => {
@@ -203,28 +185,16 @@ export default class Main extends React.Component<{}, IState> {
                 rangeToUse.load(['address', 'values', 'columnCount']);
                 await context.sync();
             }
-            dataStore.addressForCountIndicators = rangeToUse.address.replace(
-                `${worksheet.name}!`,
-                ''
-            );
+            dataStore.addressForCountIndicators = rangeToUse.address.replace(`${worksheet.name}!`, '');
 
-            dataStore.SMARangeAddress = changeAddressColumn(
-                dataStore.addressForCountIndicators,
-                'F'
-            );
-            const outputSMARange = worksheet.getRange(dataStore.SMARangeAddress);
+            const SMARangeAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'F');
+            const outputSMARange = worksheet.getRange(SMARangeAddress);
 
-            dataStore.EMARangeAddress = changeAddressColumn(
-                dataStore.addressForCountIndicators,
-                'G'
-            );
-            const outputEMARange = worksheet.getRange(dataStore.EMARangeAddress);
+            const EMARangeAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'G');
+            const outputEMARange = worksheet.getRange(EMARangeAddress);
 
-            dataStore.ROCRangeAddress = changeAddressColumn(
-                dataStore.addressForCountIndicators,
-                'H'
-            );
-            const outputROCRange = worksheet.getRange(dataStore.ROCRangeAddress);
+            const ROCRangeAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'H');
+            const outputROCRange = worksheet.getRange(ROCRangeAddress);
 
             const prices = rangeToUse.values.map(item => item[0]);
 
@@ -243,12 +213,30 @@ export default class Main extends React.Component<{}, IState> {
     calculateSignals = async () => {
         wrapExcelLogic(async context => {
             const worksheet = context.workbook.worksheets.getActiveWorksheet();
-            const SMARange = worksheet.getRange(dataStore.SMARangeAddress);
-            // const EMARange = worksheet.getRange(dataStore.EMARangeAddress);
-            // const ROCRange = worksheet.getRange(dataStore.ROCRangeAddress);
-            calcSignalSMA(SMARange, dataStore.SMAValues, dataStore.prices);
+            dataStore.SMASignalAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'I');
+            dataStore.EMASignalAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'J');
+            dataStore.ROCSignalAddress = changeAddressColumn(dataStore.addressForCountIndicators, 'K');
+
+            const SMASignalRange = worksheet.getRange(dataStore.SMASignalAddress);
+            const SMASignals = calcSignalSMA(dataStore.SMAValues, dataStore.prices);
+
+            this.mergeSignalsWithWorksheet(SMASignalRange, SMASignals);
+            await context.sync();
         });
     };
+
+    mergeSignalsWithWorksheet(signalsRange: Excel.Range, signals: signal[]) {
+        for (let i = 0; i < signals.length; i++) {
+            const cell = signalsRange.getCell(i, 0);
+            const signalColor = signals[i].color;
+            cell.load(['values', 'format/fill/color', 'format/font/color']);
+            cell.values = [[signals[i].value]];
+            if (signalColor) {
+                cell.format.fill.color = signalColor;
+                cell.format.font.color = 'white';
+            }
+        }
+    }
 
     drawROCChart = async () => {
         wrapExcelLogic(async context => {
@@ -295,6 +283,9 @@ export default class Main extends React.Component<{}, IState> {
             this.clearIndicatorRange(worksheet, 'F', TABLE_HEADER.Sma);
             this.clearIndicatorRange(worksheet, 'G', TABLE_HEADER.Ema);
             this.clearIndicatorRange(worksheet, 'H', TABLE_HEADER.Roc);
+            this.clearIndicatorRange(worksheet, 'I', TABLE_HEADER.SmaSignal);
+            this.clearIndicatorRange(worksheet, 'J', TABLE_HEADER.EmaSignal);
+            this.clearIndicatorRange(worksheet, 'K', TABLE_HEADER.RocSignal);
 
             await context.sync();
         });
@@ -303,7 +294,7 @@ export default class Main extends React.Component<{}, IState> {
     clearIndicatorRange(worksheet: Excel.Worksheet, column: string, title: string): void {
         const range = worksheet.getRange(`${column}:${column}`);
         const titleCell = worksheet.getRange(`${column}1`);
-        range.clear(Excel.ClearApplyTo.contents);
+        range.clear(Excel.ClearApplyTo.all);
         titleCell.values = [[title]];
     }
 
@@ -342,23 +333,14 @@ export default class Main extends React.Component<{}, IState> {
     };
 
     render() {
-        const {
-            drawCandlestickChartEnabled,
-            countIndicatorsEnabled,
-            drawCandlestickChart,
-            countIndicators,
-            drawROCChart
-        } = this.state;
+        const { drawCandlestickChartEnabled, countIndicatorsEnabled, drawCandlestickChart, countIndicators, drawROCChart } = this.state;
         return (
             <div className='main'>
                 <div className='main__actions'>
                     <div onClick={this.createSheet} className='main__action main__action_clickable'>
                         create new sheet
                     </div>
-                    <div
-                        onClick={this.handleResetClick}
-                        className='main__action main__action_clickable'
-                    >
+                    <div onClick={this.handleResetClick} className='main__action main__action_clickable'>
                         reset worksheet
                     </div>
                     <div className='main__action main__action_primary'>

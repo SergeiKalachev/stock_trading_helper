@@ -1,4 +1,5 @@
 import { getArrayWithMultipleItems } from './utils';
+import { signal } from '../models';
 
 export function calcSMA(prices: any[], period: number): any[] {
     const SMA = [];
@@ -38,8 +39,34 @@ export function calcROC(prices: any[], period: number): any[] {
     return ROC;
 }
 
-export function calcSignalSMA(SMARange: Excel.Range, SMAValues: any[], prices: any[]): void {
-    console.log(SMARange);
-    console.log(SMAValues);
-    console.log(prices);
+function prefillSMASignals(): signal[] {
+    return [{ value: '' }, { value: '' }];
 }
+
+export function calcSignalSMA(SMAValues: any[], prices: any[]): signal[] {
+    const signals: signal[] = prefillSMASignals();
+
+    for (let i = 2; i < prices.length; i++) {
+        let currSMASignal: signal = { value: '' };
+        let prevFirstSMASignal = signals[i - 1];
+        let prevSecondSMASignal = signals[i - 2];
+        if (SMAValues[i] < SMAValues[i - 1]) {
+            currSMASignal.value = 'decrease';
+            if (prevFirstSMASignal.value === 'increase' && prevSecondSMASignal.value === 'increase') {
+                currSMASignal.color = 'red';
+            }
+        } else if (SMAValues[i] > SMAValues[i - 1]) {
+            currSMASignal.value = 'increase';
+            if (prevFirstSMASignal.value === 'decrease' && prevSecondSMASignal.value === 'decrease') {
+                currSMASignal.color = 'green';
+            }
+        }
+        signals.push(currSMASignal);
+    }
+
+    return signals;
+}
+
+// export function calcSignalEMA(EMARange: Excel.Range, EMAValues: any[], prices: any[]): void {}
+
+// export function calcSignalROC(ROCRange: Excel.Range, ROCValues: any[], prices: any[]): void {}
