@@ -1,7 +1,7 @@
 .tooltip {
     &__container {
         position: relative;
-        margin-left: 2px;
+        margin-left: 5px;
     }
 
     &__icon {
@@ -44,5 +44,19 @@
             top: -12px;
             right: 30px;
         }
+    }
+}
+
+.question-mark {
+    &::after {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 17px;
+        height: 17px;
+        border: 1.5px solid rgb(122, 122, 122);
+        color: rgb(122, 122, 122);
+        border-radius: 20px;
+        content: '?';
     }
 }

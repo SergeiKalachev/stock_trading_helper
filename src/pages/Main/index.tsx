@@ -20,8 +20,6 @@ interface IState {
     drawCandlestickChart: boolean;
     countIndicators: boolean;
     drawROCChart: boolean;
-
-    countIndicatorsTooltip: boolean;
 }
 
 export default class Main extends React.Component<{}, IState> {
@@ -33,9 +31,7 @@ export default class Main extends React.Component<{}, IState> {
 
             drawCandlestickChart: false,
             countIndicators: false,
-            drawROCChart: false,
-
-            countIndicatorsTooltip: false
+            drawROCChart: false
         };
     }
 
@@ -107,8 +103,7 @@ export default class Main extends React.Component<{}, IState> {
             ...newState,
             drawCandlestickChart: newState.drawCandlestickChartEnabled ? drawCandlestickChart : false,
             countIndicators: newState.countIndicatorsEnabled ? countIndicators : false,
-            drawROCChart: newState.countIndicatorsEnabled ? drawROCChart : false,
-            countIndicatorsTooltip: drawCandlestickChartEnabled
+            drawROCChart: newState.countIndicatorsEnabled ? drawROCChart : false
         };
     };
 
@@ -355,14 +350,7 @@ export default class Main extends React.Component<{}, IState> {
     };
 
     render() {
-        const {
-            drawCandlestickChartEnabled,
-            countIndicatorsEnabled,
-            drawCandlestickChart,
-            countIndicators,
-            drawROCChart,
-            countIndicatorsTooltip
-        } = this.state;
+        const { drawCandlestickChartEnabled, countIndicatorsEnabled, drawCandlestickChart, countIndicators, drawROCChart } = this.state;
         return (
             <div className='main'>
                 <div className='main__actions'>
@@ -377,9 +365,14 @@ export default class Main extends React.Component<{}, IState> {
                             onChange={checked => {
                                 this.setState({ drawCandlestickChart: checked });
                             }}
-                            optionText='draw candlestick chart'
+                            optionText='candlestick chart'
                             checked={drawCandlestickChart}
                             enabled={drawCandlestickChartEnabled}
+                            tooltip={
+                                drawCandlestickChartEnabled
+                                    ? null
+                                    : 'Select range in table with columns DATE, OPEN, HIGH, LOW, CLOSE and their values'
+                            }
                         />
                         <Option
                             onChange={checked => {
@@ -395,11 +388,12 @@ export default class Main extends React.Component<{}, IState> {
                             optionText='count indicators'
                             checked={countIndicators}
                             enabled={countIndicatorsEnabled}
-                            tooltip={countIndicatorsTooltip ? `${TABLE_HEADER.Close} prices will be used` : null}
+                            tooltip={!countIndicatorsEnabled && 'Select range in any price column or enable Candlestick Chart option'}
+                            warn={drawCandlestickChartEnabled ? `${TABLE_HEADER.Close} prices will be used` : null}
                         />
                         <Option
                             onChange={checked => this.setState({ drawROCChart: checked })}
-                            optionText='draw ROC chart'
+                            optionText='ROC chart'
                             checked={countIndicators && drawROCChart}
                             enabled={countIndicators} // allow drawROCChart when countIndicators option checked
                         />

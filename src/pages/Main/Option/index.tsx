@@ -9,9 +9,10 @@ interface IProps {
     checked: boolean;
     enabled: boolean;
     tooltip?: string;
+    warn?: string;
 }
 
-export default ({ onChange, optionText, checked, enabled, tooltip }: IProps) => (
+export default ({ onChange, optionText, checked, enabled, tooltip, warn }: IProps) => (
     <div className='main__option'>
         <Checkbox
             className={cn('main__option-checkbox', { 'main__option-checkbox_enabled': enabled })}
@@ -22,8 +23,8 @@ export default ({ onChange, optionText, checked, enabled, tooltip }: IProps) => 
                 }
             }}
         />
-        <div className={cn('main__option-label', { 'main__option-label_enabled': enabled })}>
-            {optionText} {tooltip && <Tooltip text={tooltip} />}
-        </div>
+        <div className={cn('main__option-label', { 'main__option-label_enabled': enabled })}>{optionText}</div>
+        {tooltip && <Tooltip text={tooltip} />}
+        {warn && <Tooltip warn={true} text={warn} />}
     </div>
 );
