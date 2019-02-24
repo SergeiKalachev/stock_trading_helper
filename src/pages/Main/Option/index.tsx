@@ -1,15 +1,17 @@
 import * as React from 'react';
 import cn from 'classnames';
 import Checkbox from '../../../components/controls/Checkbox';
+import Tooltip from '../../../components/controls/Tooltip';
 
 interface IProps {
     onChange: (checked: boolean) => any;
     optionText: string;
     checked: boolean;
     enabled: boolean;
+    tooltip?: string;
 }
 
-export default ({ onChange, optionText, checked, enabled }: IProps) => (
+export default ({ onChange, optionText, checked, enabled, tooltip }: IProps) => (
     <div className='main__option'>
         <Checkbox
             className={cn('main__option-checkbox', { 'main__option-checkbox_enabled': enabled })}
@@ -21,7 +23,7 @@ export default ({ onChange, optionText, checked, enabled }: IProps) => (
             }}
         />
         <div className={cn('main__option-label', { 'main__option-label_enabled': enabled })}>
-            {optionText}
+            {optionText} {tooltip && <Tooltip text={tooltip} />}
         </div>
     </div>
 );

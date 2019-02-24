@@ -20,6 +20,8 @@ interface IState {
     drawCandlestickChart: boolean;
     countIndicators: boolean;
     drawROCChart: boolean;
+
+    countIndicatorsTooltip: boolean;
 }
 
 export default class Main extends React.Component<{}, IState> {
@@ -31,7 +33,9 @@ export default class Main extends React.Component<{}, IState> {
 
             drawCandlestickChart: false,
             countIndicators: false,
-            drawROCChart: false
+            drawROCChart: false,
+
+            countIndicatorsTooltip: false
         };
     }
 
@@ -103,7 +107,8 @@ export default class Main extends React.Component<{}, IState> {
             ...newState,
             drawCandlestickChart: newState.drawCandlestickChartEnabled ? drawCandlestickChart : false,
             countIndicators: newState.countIndicatorsEnabled ? countIndicators : false,
-            drawROCChart: newState.countIndicatorsEnabled ? drawROCChart : false
+            drawROCChart: newState.countIndicatorsEnabled ? drawROCChart : false,
+            countIndicatorsTooltip: drawCandlestickChartEnabled
         };
     };
 
@@ -350,7 +355,14 @@ export default class Main extends React.Component<{}, IState> {
     };
 
     render() {
-        const { drawCandlestickChartEnabled, countIndicatorsEnabled, drawCandlestickChart, countIndicators, drawROCChart } = this.state;
+        const {
+            drawCandlestickChartEnabled,
+            countIndicatorsEnabled,
+            drawCandlestickChart,
+            countIndicators,
+            drawROCChart,
+            countIndicatorsTooltip
+        } = this.state;
         return (
             <div className='main'>
                 <div className='main__actions'>
@@ -383,6 +395,7 @@ export default class Main extends React.Component<{}, IState> {
                             optionText='count indicators'
                             checked={countIndicators}
                             enabled={countIndicatorsEnabled}
+                            tooltip={countIndicatorsTooltip ? `${TABLE_HEADER.Close} prices will be used` : null}
                         />
                         <Option
                             onChange={checked => this.setState({ drawROCChart: checked })}

@@ -1,0 +1,13 @@
+.tooltip {
+    &__container {
+        position: relative;
+        margin-left: 2px;
+    }
+
+    &__icon {
+        color: rgb(122, 122, 122);
+        position: absolute;
+        top: 0;
+        font-size: 22px;
+    }
+}

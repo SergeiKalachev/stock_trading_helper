@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 import { initializeIcons } from 'office-ui-fabric-react/lib/Icons';
-import { HashRouter } from "react-router-dom";
+import { HashRouter } from 'react-router-dom';
 
 import App from './components/App';
 
@@ -15,7 +15,7 @@ let isOfficeInitialized = false;
 
 const title = 'stock trading helper';
 
-const render = (Component) => {
+const render = Component => {
     ReactDOM.render(
         <HashRouter>
             <AppContainer>
