@@ -10,4 +10,39 @@
         top: 0;
         font-size: 22px;
     }
+
+    &__text {
+        $border: 1px dashed grey;
+        $bg-color: rgb(213, 249, 255);
+
+        z-index: 2000;
+        padding: 0.8rem;
+        position: absolute;
+        color: black;
+        top: 40px;
+        min-width: 190px;
+        left: -164px;
+        border: $border;
+        background-color: $bg-color;
+        text-transform: none;
+        border-radius: 10px;
+
+        font-size: 17px;
+        font-style: italic;
+        font-weight: 600;
+
+        &::after {
+            content: '';
+            display: block;
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-top: $border;
+            border-right: $border;
+            background-color: $bg-color;
+            transform: rotate(-45deg);
+            top: -12px;
+            right: 30px;
+        }
+    }
 }
