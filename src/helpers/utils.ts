@@ -10,10 +10,7 @@ export function getServerHost() {
     return host;
 }
 
-export async function wrapExcelLogic(
-    logic: (context: Excel.RequestContext) => any,
-    errorHandler?: (error: OfficeExtension.Error) => any
-) {
+export async function wrapExcelLogic(logic: (context: Excel.RequestContext) => any, errorHandler?: (error: OfficeExtension.Error) => any) {
     try {
         await Excel.run(logic);
     } catch (error) {
@@ -25,7 +22,7 @@ export async function wrapExcelLogic(
     }
 }
 
-export function stringify(obj) {
+export function stringify(obj, space = 4) {
     const getCircularReplacer = () => {
         const seen = new WeakSet();
         return (_key, value) => {
@@ -39,7 +36,7 @@ export function stringify(obj) {
         };
     };
 
-    return JSON.stringify(obj, getCircularReplacer());
+    return JSON.stringify(obj, getCircularReplacer(), space);
 }
 
 // from https://stackoverflow.com/a/2117523

@@ -140,6 +140,7 @@ export default class Main extends React.Component<{}, IState> {
 
                 const worksheet = context.workbook.worksheets.getActiveWorksheet();
                 const candlestickChart = worksheet.charts.add(Excel.ChartType.stockOHLC, dataRange);
+                candlestickChart.load('series/items/name');
 
                 candlestickChart.name = CHART_NAMES.Candlestick;
                 candlestickChart.title.text = 'Candlesticks';
@@ -151,6 +152,12 @@ export default class Main extends React.Component<{}, IState> {
                 const verticalAxis = candlestickChart.axes.valueAxis;
                 verticalAxis.maximum = Math.max(...mapColumnIntoArrayOfValues(highPricesColumn.values));
                 verticalAxis.minimum = Math.min(...mapColumnIntoArrayOfValues(lowPricesColumn.values));
+
+                const closeSeries = candlestickChart.series.items.find(i => i.name === TABLE_HEADER.Close);
+                const closeSMATrendline = closeSeries.trendlines.add(Excel.ChartTrendlineType.movingAverage);
+                closeSMATrendline.movingAveragePeriod = 5;
+                closeSMATrendline.format.line.color = 'red';
+                closeSMATrendline.format.line.weight = 1;
                 await context.sync();
             },
             error => {
@@ -259,6 +266,7 @@ export default class Main extends React.Component<{}, IState> {
             ROCChart.top = 210;
 
             ROCRange.load('address');
+            ROCChart.load('series/items/name');
             await context.sync();
 
             const ROCDateValuesAddress = changeAddressColumn(ROCRangeAddress, 'A');
@@ -269,6 +277,8 @@ export default class Main extends React.Component<{}, IState> {
             categoryAxis.format.font.color = '#868686';
             categoryAxis.format.line.weight = 2;
             categoryAxis.format.line.color = '#232323';
+
+            ROCChart.series.items[0].name = 'ROC';
             await context.sync();
         });
     };
