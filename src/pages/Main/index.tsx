@@ -6,7 +6,7 @@ import Option from './Option';
 import { TABLE_HEADER, CHART_NAMES } from '../../helpers/constants';
 
 import { wrapExcelLogic, mapColumnIntoArrayOfValues, getServerHost, changeAddressColumn } from '../../helpers/utils';
-import { calcSMA, calcEMA, calcROC, calcSignalSMA } from '../../helpers/indicatorsHelper';
+import { calcSMA, calcEMA, calcROC, calcSignalSMA, calcSignalEMA, calcSignalROC } from '../../helpers/indicatorsHelper';
 import { signal } from '../../models';
 
 import dataStore from '../../stores/dataStore';
@@ -200,7 +200,7 @@ export default class Main extends React.Component<{}, IState> {
 
             dataStore.prices = prices;
             dataStore.SMAValues = calcSMA(prices, 5);
-            dataStore.EMAValues = calcEMA(prices, 5);
+            dataStore.EMAValues = calcEMA(prices, 21);
             dataStore.ROCValues = calcROC(prices, 5);
 
             outputSMARange.values = dataStore.SMAValues.map(v => [v]);
@@ -220,7 +220,15 @@ export default class Main extends React.Component<{}, IState> {
             const SMASignalRange = worksheet.getRange(dataStore.SMASignalAddress);
             const SMASignals = calcSignalSMA(dataStore.SMAValues, dataStore.prices);
 
+            const EMASignalRange = worksheet.getRange(dataStore.EMASignalAddress);
+            const EMASignals = calcSignalEMA(dataStore.EMAValues, dataStore.prices);
+
+            const ROCSignalRange = worksheet.getRange(dataStore.ROCSignalAddress);
+            const ROCSignals = calcSignalROC(dataStore.ROCValues);
+
             this.mergeSignalsWithWorksheet(SMASignalRange, SMASignals);
+            this.mergeSignalsWithWorksheet(EMASignalRange, EMASignals);
+            this.mergeSignalsWithWorksheet(ROCSignalRange, ROCSignals);
             await context.sync();
         });
     };
@@ -229,7 +237,6 @@ export default class Main extends React.Component<{}, IState> {
         for (let i = 0; i < signals.length; i++) {
             const cell = signalsRange.getCell(i, 0);
             const signalColor = signals[i].color;
-            cell.load(['values', 'format/fill/color', 'format/font/color']);
             cell.values = [[signals[i].value]];
             if (signalColor) {
                 cell.format.fill.color = signalColor;
