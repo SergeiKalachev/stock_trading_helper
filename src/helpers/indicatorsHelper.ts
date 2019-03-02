@@ -30,13 +30,17 @@ export function calcEMA(prices: any[], period: number): any[] {
 }
 
 export function calcROC(prices: any[], period: number): any[] {
-    const ROC = getArrayWithMultipleItems(0, period);
+    if (prices.length > period) {
+        const ROC = getArrayWithMultipleItems(0, period);
 
-    for (let i = period; i < prices.length; i++) {
-        let ROCForPeriod = (prices[i] - prices[i - period]) / prices[i - period];
-        ROC.push(ROCForPeriod);
+        for (let i = period; i < prices.length; i++) {
+            let ROCForPeriod = (prices[i] - prices[i - period]) / prices[i - period];
+            ROC.push(ROCForPeriod);
+        }
+        return ROC;
     }
-    return ROC;
+
+    return getArrayWithMultipleItems(0, prices.length);
 }
 
 function prefillSignals(): signal[] {
