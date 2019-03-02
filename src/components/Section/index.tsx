@@ -19,7 +19,7 @@ const Section: React.FunctionComponent<IProps> = ({ title, bodyText, bodyCompone
             {BodyComponent && <BodyComponent />}
             {imgPath && (
                 <div className='section__body-image-container'>
-                    <img className='section__body-image' width='800px' height='auto' src={imgPath} alt={imgPath} />
+                    <img className='section__body-image' width='100%' height='auto' src={imgPath} alt={imgPath} />
                 </div>
             )}
         </div>
