@@ -120,7 +120,7 @@ export default class Main extends React.Component<{}, IState> {
             const table = newWorksheet.tables.add('A1:K50', true);
             table.getHeaderRowRange().values = [Object.values(TABLE_HEADER)];
             newWorksheet.activate();
-            Office.context.ui.displayDialogAsync(`${getServerHost()}/#/table-insertion-tip`, {
+            Office.context.ui.displayDialogAsync(`${getServerHost()}/#/instruction`, {
                 height: 50,
                 width: 60
             });

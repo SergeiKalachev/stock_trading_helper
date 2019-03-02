@@ -1,0 +1,26 @@
+.section {
+    &__title {
+        font-size: 1.9rem;
+        font-weight: 600;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid rgba(73, 73, 73, 0.424);
+    }
+
+    &__body {
+        padding-top: 0.6rem;
+        padding-left: 0.5rem;
+    }
+
+    &__body-text {
+        margin-bottom: 1.5rem;
+    }
+
+    &__body-image-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    &__body-image {
+        box-shadow: 0 0 10px rgb(107, 107, 107);
+    }
+}

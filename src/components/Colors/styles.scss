@@ -1,0 +1,21 @@
+.colors-container {
+    display: flex;
+    align-items: center;
+}
+
+.sell,
+.buy {
+    display: inline-block;
+    width: 50px;
+    height: 20px;
+    margin-right: 1rem;
+}
+
+.sell {
+    background-color: red;
+    margin-left: 1rem;
+}
+
+.buy {
+    background-color: green;
+}
